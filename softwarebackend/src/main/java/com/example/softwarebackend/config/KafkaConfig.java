@@ -41,7 +41,7 @@ public class KafkaConfig {
     public NewTopic submissionsTopic() {
         // create topic with partitions and replication factor suited for production
         logger.info("Creating Kafka topic: {}", submissionsTopic);
-        return new NewTopic(submissionsTopic, 3, (short)1);
+        return new NewTopic(submissionsTopic, 5, (short)1);
     }
 
     @Bean
@@ -99,7 +99,7 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(cf);
         // concurrency tuned from application.yml but can override programmatically
-        factory.setConcurrency(6);
+        factory.setConcurrency(5);
         // if you want at-least-once semantics, disable batch and use record Acks (default)
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 

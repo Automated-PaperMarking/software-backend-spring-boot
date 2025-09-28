@@ -44,7 +44,7 @@ public class SubmissionConsumer {
             logger.info("Received code submission: {}, Execute by thread : {}", submission,Thread.currentThread().getName());
 
             // Process grading
-            geminiService.gradeTheCode(submission);
+            double score = geminiService.gradeTheCode(submission);
 
             // ✅ commit offset manually after successful processing
             acknowledgment.acknowledge();
