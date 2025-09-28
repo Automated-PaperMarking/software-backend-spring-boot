@@ -1,0 +1,25 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    admin:
+      fail-fast: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      group-id: test-consumer-group
+      auto-offset-reset: earliest
+
+# Disable Kafka auto-configuration for tests
+spring.autoconfigure.exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+app:
+  kafka:
+    topic: test-code-submissions
+    dlq-topic: test-code-submissions-dlq
+
+GOOGLE:
+  API:
+    KEY: test-key
