@@ -1,48 +1,8 @@
 spring:
   kafka:
     bootstrap-servers: localhost:9092
-
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        # avoid adding type headers (useful for interoperability)
-        spring.json.add.type.headers: false
-        # producer timeout and retry settings
-        request.timeout.ms: 30000
-        retry.backoff.ms: 1000
-        retries: 2147483647
-        delivery.timeout.ms: 120000
-        # Connection settings
-        connections.max.idle.ms: 540000
-        reconnect.backoff.ms: 50
-        reconnect.backoff.max.ms: 1000
-
     consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       group-id: grading-consumer-group
-      auto-offset-reset: earliest
-      properties:
-        spring.json.trusted.packages: com.example.softwarebackend.dto
-        session.timeout.ms: 45000
-        heartbeat.interval.ms: 3000
-        request.timeout.ms: 30000
-        # Connection settings
-        connections.max.idle.ms: 540000
-        reconnect.backoff.ms: 50
-        reconnect.backoff.max.ms: 1000
-
-    listener:
-      # consume record by record but allow multiple threads
-      concurrency: 3
-      type: single
-
-    admin:
-      # admin client settings
-      properties:
-        connections.max.idle.ms: 10000
-      fail-fast: false
 
 app:
   kafka:
@@ -90,4 +50,3 @@ resilience4j:
         # Exceptions that should not trigger a retry
         ignore-exceptions:
           - java.lang.IllegalArgumentException
-
