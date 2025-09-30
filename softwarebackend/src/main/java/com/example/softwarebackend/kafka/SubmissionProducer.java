@@ -28,7 +28,7 @@ public class SubmissionProducer {
      * Publish submission asynchronously. Key is studentId (so messages for one student go to same partition).
      */
     public void publish(CodeSubmission submission) {
-        String key = submission.getStudentId() != null ? submission.getStudentId() : "unknown";
+        String key = submission.getGradedResultId() != null ? submission.getGradedResultId() : "unknown";
         kafkaTemplate.send(topic, key, submission)
                 .whenComplete((result, ex) -> {
                     if (ex == null) {

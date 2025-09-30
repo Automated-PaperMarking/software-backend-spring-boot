@@ -1,8 +1,21 @@
 spring:
+#  kafka config
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: grading-consumer-group
+#postgres config
+  datasource:
+    url: jdbc:postgresql://localhost:5432/softwarebackendDb
+    username: admin-user
+    password: password
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+  sql:
+    init:
+      mode: always
 
 app:
   kafka:
@@ -16,6 +29,7 @@ resilience4j:
       geminiService:
         # Circuit breaker opens when 50% of calls fail
         failure-rate-threshold: 50
+
         # Minimum number of calls before circuit breaker can trip
         minimum-number-of-calls: 5
         # Time the circuit breaker stays open before allowing test calls
@@ -33,20 +47,25 @@ resilience4j:
         ignore-exceptions:
           - java.lang.IllegalArgumentException
 
+
   retry:
     instances:
       geminiService:
+
+        maxRetryAttempts: 4
         # Maximum number of retry attempts
-        max-attempts: 3
+        max-attempts: 4
         # Wait duration between retry attempts
-        wait-duration: 2s
+        wait-duration: 10s
         # Exponential backoff multiplier
         exponential-backoff-multiplier: 2
         # Maximum wait duration
         exponential-max-wait-duration: 10s
         # Exceptions that should trigger a retry
         retry-exceptions:
-          - java.lang.Exception
+          - java.lang.RuntimeException
         # Exceptions that should not trigger a retry
         ignore-exceptions:
           - java.lang.IllegalArgumentException
+
+#database

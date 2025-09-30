@@ -2,6 +2,9 @@ package com.example.softwarebackend.controller;
 
 import com.example.softwarebackend.dto.CodeSubmission;
 import com.example.softwarebackend.kafka.SubmissionProducer;
+import com.example.softwarebackend.model.GradedResult;
+import com.example.softwarebackend.service.GradedResultService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,13 +17,12 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/submissions")
+@AllArgsConstructor
 public class SubmissionController {
 
     private final SubmissionProducer producer;
+    private  final GradedResultService gradedResultService;
 
-    public SubmissionController(SubmissionProducer producer) {
-        this.producer = producer;
-    }
 
     @PostMapping
     public ResponseEntity<?> submit(@RequestBody CodeSubmission submission) {
@@ -29,7 +31,13 @@ public class SubmissionController {
             return ResponseEntity.badRequest().body("studentId is required");
         }
 
+        //create result entry with PENDING status
+        GradedResult result = gradedResultService.addGradedResult(submission.getStudentId());
+        submission.setGradedResultId(result.getId().toString());
         producer.publish(submission);
+
+
+
 
         // return immediate ack
         return ResponseEntity.accepted().body(Map.of(

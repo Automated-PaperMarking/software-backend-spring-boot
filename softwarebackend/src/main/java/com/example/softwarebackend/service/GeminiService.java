@@ -1,9 +1,9 @@
 package com.example.softwarebackend.service;
 
 import com.example.softwarebackend.dto.CodeSubmission;
+import com.example.softwarebackend.dto.GradedResultDTO;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import org.json.JSONObject;
@@ -17,14 +17,24 @@ public class GeminiService {
     private static final Logger logger = LoggerFactory.getLogger(GeminiService.class);
 
     private final Client client;
+    private final GradedResultService gradedResultService;
 
-    public GeminiService(Client client) {
+    public GeminiService(Client client, GradedResultService gradedResultService) {
+        this.gradedResultService = gradedResultService;
         this.client = client;
     }
 
-    @CircuitBreaker(name ="geminiService", fallbackMethod = "gradeFallback")
-    @Retry(name="geminiService")
-    public double gradeTheCode(CodeSubmission codeSubmission) {
+
+
+    @Retry(name ="geminiService", fallbackMethod = "gradeFallback")
+    public void gradeTheCode(CodeSubmission codeSubmission) {
+
+        // Validate that gradedResultId is not null
+        if (codeSubmission.getGradedResultId() == null || codeSubmission.getGradedResultId().trim().isEmpty()) {
+            logger.error("Cannot grade code submission: gradedResultId is null or empty for student: {}",
+                        codeSubmission.getStudentId());
+            throw new IllegalArgumentException("GradedResultId cannot be null or empty");
+        }
 
         // Build prompt with the actual code inserted
         String prompt = """
@@ -60,6 +70,8 @@ public class GeminiService {
                 Code to evaluate:
                 """ + "\n" + codeSubmission.getCode();
 
+
+
         try {
             // Call Gemini model
             GenerateContentResponse response =
@@ -73,36 +85,40 @@ public class GeminiService {
 
             if (jsonString == null || jsonString.trim().isEmpty()) {
                 logger.error("No valid JSON found in Gemini response");
-                return 0.0;
+                return;
             }
 
-            JSONObject jsonObject = new JSONObject(jsonString);
-            double totalScore = jsonObject.getDouble("total_score");
+            GradedResultDTO gradedResult = getGradedResultDTO(codeSubmission, jsonString);
 
-            // Validate score is within expected range
-            if (totalScore < 0 || totalScore > 100) {
-                logger.warn("Total score {} is outside valid range [0-100], defaulting to 0", totalScore);
-                return 0.0;
-            }
-
-
-            return totalScore;
+            gradedResultService.updateGradedResult(gradedResult);
 
         } catch (Exception e) {
             logger.error("Gemini grading failed: {}", e.getMessage(), e);
-            return 0.0;
         }
     }
 
+    private static GradedResultDTO getGradedResultDTO(CodeSubmission codeSubmission, String jsonString) {
+        JSONObject jsonObject = new JSONObject(jsonString);
+
+        GradedResultDTO gradedResult = new GradedResultDTO();
+        gradedResult.setGradedResultId(codeSubmission.getGradedResultId()); // Fix: Set the gradedResultId
+        gradedResult.setStudentId(codeSubmission.getStudentId());
+        gradedResult.setUnderstandingLogic(jsonObject.getDouble("understanding_logic"));
+        gradedResult.setCorrectnessScore(jsonObject.getDouble("correctness_score"));
+        gradedResult.setReadabilityScore(jsonObject.getDouble("readability_score"));
+        gradedResult.setTotalScore(jsonObject.getDouble("total_score"));
+        return gradedResult;
+    }
+
     // Fallback method for circuit breaker
-    public double gradeFallback(CodeSubmission codeSubmission, Exception ex) {
+    public void gradeFallback(CodeSubmission codeSubmission, Exception ex) {
         logger.error("Circuit breaker activated for code submission. Falling back to default grade. " +
                 "Submission ID: {}, Error: {}",
                 codeSubmission.getStudentId() != null ? codeSubmission.getStudentId() : "unknown",
                 ex.getMessage(), ex);
 
-        //implement other logics if needed
-        return 0.0;
+        throw   new RuntimeException("Gemini service failed");
+
     }
 
     /**

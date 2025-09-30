@@ -48,6 +48,21 @@ services:
       # Allow PLAINTEXT for local dev
       ALLOW_PLAINTEXT_LISTENER: "yes"
 
+  db:
+    image: postgres:latest
+    container_name: softwarebackend-db
+    environment:
+        POSTGRES_USER: admin-user
+        POSTGRES_PASSWORD: password
+        POSTGRES_DB: softwarebackendDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+
 networks:
   backend-network:
     driver: bridge

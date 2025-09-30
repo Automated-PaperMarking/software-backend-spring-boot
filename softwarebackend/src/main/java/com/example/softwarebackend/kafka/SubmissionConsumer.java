@@ -2,6 +2,7 @@ package com.example.softwarebackend.kafka;
 
 import com.example.softwarebackend.dto.CodeSubmission;
 import com.example.softwarebackend.service.GeminiService;
+import com.example.softwarebackend.service.GradedResultService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +22,13 @@ public class SubmissionConsumer {
     private final KafkaTemplate<String, CodeSubmission> kafkaTemplate;
     private final String dlqTopic;
     private final GeminiService geminiService;
+    private  final GradedResultService gradedResultService;
 
     public SubmissionConsumer(GeminiService geminiService,
                               KafkaTemplate<String, CodeSubmission> kafkaTemplate,
-                              @Value("${app.kafka.dlq-topic}") String dlqTopic) {
+                              @Value("${app.kafka.dlq-topic}") String dlqTopic,
+                              GradedResultService gradedResultService) {
+        this.gradedResultService = gradedResultService;
         this.kafkaTemplate = kafkaTemplate;
         this.dlqTopic = dlqTopic;
         this.geminiService = geminiService;
@@ -44,7 +48,7 @@ public class SubmissionConsumer {
             logger.info("Received code submission: {}, Execute by thread : {}", submission,Thread.currentThread().getName());
 
             // Process grading
-            double score = geminiService.gradeTheCode(submission);
+             geminiService.gradeTheCode(submission);
 
             // ✅ commit offset manually after successful processing
             acknowledgment.acknowledge();

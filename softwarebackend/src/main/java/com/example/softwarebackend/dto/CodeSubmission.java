@@ -1,58 +1,33 @@
 package com.example.softwarebackend.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
+import java.util.UUID;
 
 
-
-
-
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CodeSubmission {
+
+    private String gradedResultId;
+    @NotBlank(message = "Student id is Required")
     private String studentId;
+    @NotBlank (message = "SubmissionType is Required")
     private SubmissionType submissionType;
+    @NotBlank(message = "Language is Required")
     private String language;
+    @NotBlank(message = "Code is Required")
     private String code;
+    @NotBlank(message = "At least one Testcase is Required")
     private List<TestCase> testCases;
 
 
-    public String getStudentId() {
-        return studentId;
-    }
 
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
-    }
-
-    public SubmissionType getSubmissionType() {
-        return submissionType;
-    }
-
-    public void setSubmissionType(SubmissionType submissionType) {
-        this.submissionType = submissionType;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public List<TestCase> getTestCases() {
-        return testCases;
-    }
-
-    public void setTestCases(List<TestCase> testCases) {
-        this.testCases = testCases;
-    }
 
     @Override
     public String toString() {
