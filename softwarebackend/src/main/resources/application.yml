@@ -1,10 +1,10 @@
 spring:
-#  kafka config
+  #  kafka config
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: grading-consumer-group
-#postgres config
+  #postgres config
   datasource:
     url: jdbc:postgresql://localhost:5432/softwarebackendDb
     username: admin-user
@@ -22,50 +22,5 @@ app:
     topic: code-submissions
     dlq-topic: code-submissions-dlq
 
-# Resilience4j Configuration
-resilience4j:
-  circuitbreaker:
-    instances:
-      geminiService:
-        # Circuit breaker opens when 50% of calls fail
-        failure-rate-threshold: 50
-
-        # Minimum number of calls before circuit breaker can trip
-        minimum-number-of-calls: 5
-        # Time the circuit breaker stays open before allowing test calls
-        wait-duration-in-open-state: 30s
-        # Number of calls in half-open state to determine if circuit should close
-        permitted-number-of-calls-in-half-open-state: 3
-        # Sliding window size for monitoring calls
-        sliding-window-size: 10
-        # Type of sliding window (COUNT_BASED or TIME_BASED)
-        sliding-window-type: COUNT_BASED
-        # Exceptions that should be recorded as failures
-        record-exceptions:
-          - java.lang.Exception
-        # Exceptions that should be ignored (not counted as failure or success)
-        ignore-exceptions:
-          - java.lang.IllegalArgumentException
-
-
-  retry:
-    instances:
-      geminiService:
-
-        maxRetryAttempts: 4
-        # Maximum number of retry attempts
-        max-attempts: 4
-        # Wait duration between retry attempts
-        wait-duration: 10s
-        # Exponential backoff multiplier
-        exponential-backoff-multiplier: 2
-        # Maximum wait duration
-        exponential-max-wait-duration: 10s
-        # Exceptions that should trigger a retry
-        retry-exceptions:
-          - java.lang.RuntimeException
-        # Exceptions that should not trigger a retry
-        ignore-exceptions:
-          - java.lang.IllegalArgumentException
-
-#database
+server:
+  port: 4000

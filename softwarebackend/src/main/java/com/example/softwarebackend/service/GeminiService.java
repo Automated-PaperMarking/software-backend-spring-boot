@@ -5,11 +5,13 @@ import com.example.softwarebackend.dto.GradedResultDTO;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 
-import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.retry.Retry;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Supplier;
 
 @Service
 public class GeminiService {
@@ -18,17 +20,38 @@ public class GeminiService {
 
     private final Client client;
     private final GradedResultService gradedResultService;
+    private final Retry geminiServiceRetry;
 
-    public GeminiService(Client client, GradedResultService gradedResultService) {
+    public GeminiService(Client client, GradedResultService gradedResultService, Retry geminiServiceRetry) {
         this.gradedResultService = gradedResultService;
         this.client = client;
+        this.geminiServiceRetry = geminiServiceRetry;
     }
 
-
-
-    @Retry(name ="geminiService", fallbackMethod = "gradeFallback")
     public void gradeTheCode(CodeSubmission codeSubmission) {
+        // Use programmatic retry with fallback
+        Supplier<Void> gradeSupplier = Retry.decorateSupplier(geminiServiceRetry, () -> {
+            try {
+                performGrading(codeSubmission);
+                return null;
+            } catch (Exception e) {
+                logger.error("Error during grading attempt for student {}: {}",
+                           codeSubmission.getStudentId(), e.getMessage());
+                throw e;
+            }
+        });
 
+        try {
+            gradeSupplier.get();
+        } catch (Exception e) {
+            logger.error("All retry attempts failed for student {}. Executing fallback.",
+                       codeSubmission.getStudentId());
+            gradeFallback(codeSubmission, e);
+        }
+    }
+
+    private void performGrading(CodeSubmission codeSubmission) {
+        if(true) throw  new RuntimeException("test  grading exception");
         // Validate that gradedResultId is not null
         if (codeSubmission.getGradedResultId() == null || codeSubmission.getGradedResultId().trim().isEmpty()) {
             logger.error("Cannot grade code submission: gradedResultId is null or empty for student: {}",
@@ -67,34 +90,30 @@ public class GeminiService {
                   "total_score": number
                 }
 
-                Code to evaluate:
+                Code to evaluate:   
                 """ + "\n" + codeSubmission.getCode();
 
+        logger.info("🚀 Attempting to grade code for student: {}", codeSubmission.getStudentId());
 
+        // Call Gemini model
+        GenerateContentResponse response =
+                client.models.generateContent("gemini-2.5-flash", prompt, null);
 
-        try {
-            // Call Gemini model
-            GenerateContentResponse response =
-                    client.models.generateContent("gemini-2.5-flash", prompt, null);
+        String responseText = response.text();
+        logger.info("Gemini grading response: {}", responseText);
 
-            String responseText = response.text();
-            logger.info("Gemini grading response: {}", responseText);
+        // Extract JSON from the response text
+        String jsonString = extractJsonFromResponse(responseText);
 
-            // Extract JSON from the response text
-            String jsonString = extractJsonFromResponse(responseText);
-
-            if (jsonString == null || jsonString.trim().isEmpty()) {
-                logger.error("No valid JSON found in Gemini response");
-                return;
-            }
-
-            GradedResultDTO gradedResult = getGradedResultDTO(codeSubmission, jsonString);
-
-            gradedResultService.updateGradedResult(gradedResult);
-
-        } catch (Exception e) {
-            logger.error("Gemini grading failed: {}", e.getMessage(), e);
+        if (jsonString == null || jsonString.trim().isEmpty()) {
+            logger.error("No valid JSON found in Gemini response");
+            throw new RuntimeException("Invalid JSON response from Gemini service");
         }
+
+        GradedResultDTO gradedResult = getGradedResultDTO(codeSubmission, jsonString);
+        gradedResultService.updateGradedResult(gradedResult);
+
+        logger.info("✅ Successfully graded code for student: {}", codeSubmission.getStudentId());
     }
 
     private static GradedResultDTO getGradedResultDTO(CodeSubmission codeSubmission, String jsonString) {

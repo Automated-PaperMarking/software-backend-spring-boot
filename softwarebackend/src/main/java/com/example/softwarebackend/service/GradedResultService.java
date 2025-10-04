@@ -34,33 +34,19 @@ public class GradedResultService {
     }
 
     public void updateGradedResult(GradedResultDTO gradedResult){
-        // Validate gradedResultId is not null or empty
-        if (gradedResult.getGradedResultId() == null || gradedResult.getGradedResultId().trim().isEmpty()) {
-            logger.error("Cannot update graded result: gradedResultId is null or empty for student: {}",
-                        gradedResult.getStudentId());
-            throw new IllegalArgumentException("GradedResultId cannot be null or empty");
+        Optional<GradedResult> existingResult = gradedResultRepository.findById(UUID.fromString(gradedResult.getGradedResultId()));
+        if(existingResult.isPresent()){
+            GradedResult resultToUpdate = existingResult.get();
+            resultToUpdate.setUnderstandingLogic(gradedResult.getUnderstandingLogic());
+            resultToUpdate.setCorrectnessScore(gradedResult.getCorrectnessScore());
+            resultToUpdate.setReadabilityScore(gradedResult.getReadabilityScore());
+            resultToUpdate.setTotalScore(gradedResult.getTotalScore());
+            resultToUpdate.setGradingResultStatus(GradingResultStatus.COMPLETED);
+            gradedResultRepository.save(resultToUpdate);
+        } else {
+            logger.warn("Graded result not found for student ID: {}", gradedResult.getStudentId());
         }
-
-        try {
-            Optional<GradedResult> existingResult = gradedResultRepository.findById(UUID.fromString(gradedResult.getGradedResultId()));
-            if(existingResult.isPresent()){
-                GradedResult resultToUpdate = existingResult.get();
-                resultToUpdate.setUnderstandingLogic(gradedResult.getUnderstandingLogic());
-                resultToUpdate.setCorrectnessScore(gradedResult.getCorrectnessScore());
-                resultToUpdate.setReadabilityScore(gradedResult.getReadabilityScore());
-                resultToUpdate.setTotalScore(gradedResult.getTotalScore());
-                resultToUpdate.setGradingResultStatus(GradingResultStatus.COMPLETED);
-                gradedResultRepository.save(resultToUpdate);
-                logger.info("Updated graded result for student ID: {}", gradedResult.getStudentId());
-            } else {
-                logger.warn("Graded result not found for ID: {} and student ID: {}",
-                           gradedResult.getGradedResultId(), gradedResult.getStudentId());
-            }
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid UUID format for gradedResultId: {} for student: {}",
-                        gradedResult.getGradedResultId(), gradedResult.getStudentId(), e);
-            throw new IllegalArgumentException("Invalid gradedResultId format: " + gradedResult.getGradedResultId(), e);
-        }
+        logger.info("Updated graded result for student ID: {}", gradedResult.getStudentId());
     }
 
 }
