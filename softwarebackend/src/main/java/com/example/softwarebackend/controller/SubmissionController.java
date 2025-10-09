@@ -1,6 +1,7 @@
 package com.example.softwarebackend.controller;
 
 import com.example.softwarebackend.dto.CodeSubmission;
+import com.example.softwarebackend.dto.ResultResponseDTO;
 import com.example.softwarebackend.kafka.SubmissionProducer;
 import com.example.softwarebackend.model.GradedResult;
 import com.example.softwarebackend.service.GradedResultService;
@@ -36,14 +37,18 @@ public class SubmissionController {
         submission.setGradedResultId(result.getId().toString());
         producer.publish(submission);
 
-
-
-
         // return immediate ack
         return ResponseEntity.accepted().body(Map.of(
                 "status", "accepted",
                 "studentId", submission.getStudentId()
         ));
+    }
+
+    @GetMapping("/result")
+    public ResponseEntity<?>  getResult(@RequestParam(name = "resultId") String resultId) {
+        ResultResponseDTO result= gradedResultService.getResultById(resultId);
+        return ResponseEntity.ok(result);
+
     }
 
 

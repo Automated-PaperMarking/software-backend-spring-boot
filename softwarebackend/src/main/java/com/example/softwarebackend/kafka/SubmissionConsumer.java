@@ -50,18 +50,13 @@ public class SubmissionConsumer {
             // Process grading
              geminiService.gradeTheCode(submission);
 
-            // ✅ commit offset manually after successful processing
+            //  commit offset manually after successful processing
             acknowledgment.acknowledge();
 
         } catch (Exception ex) {
             logger.error("Processing failed for key={}, forwarding to DLQ. Error: {}",
                     key, ex.getMessage(), ex);
 
-            // ✅ Forward to DLQ
-            kafkaTemplate.send(dlqTopic, key, submission);
-
-            // Optionally DO NOT acknowledge to retry later
-            // acknowledgment.nack(Duration.ofSeconds(10)); // requires Spring Kafka 2.3+
         }
     }
 

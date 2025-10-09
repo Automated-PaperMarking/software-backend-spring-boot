@@ -136,7 +136,10 @@ public class GeminiService {
                 codeSubmission.getStudentId() != null ? codeSubmission.getStudentId() : "unknown",
                 ex.getMessage(), ex);
 
-        throw   new RuntimeException("Gemini service failed");
+        //update the graded result status to FAILED
+        gradedResultService.updateFailedGradingResult(codeSubmission.getGradedResultId());
+
+        throw new RuntimeException("Gemini service failed");
 
     }
 

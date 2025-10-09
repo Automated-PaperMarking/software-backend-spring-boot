@@ -2,6 +2,7 @@ package com.example.softwarebackend.service;
 
 
 import com.example.softwarebackend.dto.GradedResultDTO;
+import com.example.softwarebackend.dto.ResultResponseDTO;
 import com.example.softwarebackend.model.GradedResult;
 import com.example.softwarebackend.model.GradingResultStatus;
 import com.example.softwarebackend.repository.GradedResultRepository;
@@ -48,5 +49,36 @@ public class GradedResultService {
         }
         logger.info("Updated graded result for student ID: {}", gradedResult.getStudentId());
     }
+
+    public  void updateFailedGradingResult(String resultId){
+        Optional<GradedResult> existingResult = gradedResultRepository.findById(UUID.fromString(resultId));
+        if(existingResult.isPresent()){
+            existingResult.get().setGradingResultStatus(GradingResultStatus.FAILED);
+            gradedResultRepository.save(existingResult.get());
+            logger.info("Updated Failed graded result for student ID: {}", resultId);
+
+        }
+    }
+    public ResultResponseDTO getResultById(String resultId){
+        Optional<GradedResult> existingResult = gradedResultRepository.findById(UUID.fromString(resultId));
+        if(existingResult.isPresent()){
+            GradedResult result = existingResult.get();
+            return new ResultResponseDTO(
+                    result.getId().toString(),
+                    result.getStudentId(),
+                    result.getUnderstandingLogic(),
+                    result.getCorrectnessScore(),
+                    result.getReadabilityScore(),
+                    result.getTotalScore(),
+                    result.getGradingResultStatus().name()
+            );
+        } else {
+            logger.warn("Result not found for student ID: {}", resultId);
+            return null;
+        }
+
+    }
+
+
 
 }
