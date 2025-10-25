@@ -40,7 +40,7 @@ public class SubmissionController {
         // return immediate ack
         return ResponseEntity.accepted().body(Map.of(
                 "status", "accepted",
-                "studentId", submission.getStudentId()
+                "resultId", submission.getGradedResultId()
         ));
     }
 
