@@ -97,7 +97,7 @@ public class GeminiService {
 
         // Call Gemini model
         GenerateContentResponse response =
-                client.models.generateContent("gemini-2.5-flash", prompt, null);
+                client.models.generateContent("gemma-3-27b-it", prompt, null);
 
         String responseText = response.text();
         logger.info("Gemini grading response: {}", responseText);
