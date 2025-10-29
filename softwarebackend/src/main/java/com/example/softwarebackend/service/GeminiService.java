@@ -51,7 +51,6 @@ public class GeminiService {
     }
 
     private void performGrading(CodeSubmission codeSubmission) {
-        if(true) throw  new RuntimeException("test  grading exception");
         // Validate that gradedResultId is not null
         if (codeSubmission.getGradedResultId() == null || codeSubmission.getGradedResultId().trim().isEmpty()) {
             logger.error("Cannot grade code submission: gradedResultId is null or empty for student: {}",
