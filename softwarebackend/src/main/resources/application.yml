@@ -1,14 +1,17 @@
+server:
+  port: ${SERVER_PORT:4000}
+
 spring:
-  #  kafka config
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
-      group-id: grading-consumer-group
-  #postgres config
+      group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:grading-consumer-group}
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/softwarebackendDb
-    username: admin-user
-    password: password
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/softwarebackendDb}
+    username: ${SPRING_DATASOURCE_USERNAME:admin-user}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.postgresql.Driver}
 
   jpa:
     hibernate:
@@ -19,8 +22,5 @@ spring:
 
 app:
   kafka:
-    topic: code-submissions
-    dlq-topic: code-submissions-dlq
-
-server:
-  port: 4000
+    topic: ${APP_KAFKA_TOPIC:code-submissions}
+    dlq-topic: ${APP_KAFKA_DLQ_TOPIC:code-submissions-dlq}
