@@ -9,8 +9,10 @@ services:
     env_file:
       - .env
     depends_on:
-      - kafka
-      - db
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - backend-network
     restart: on-failure
@@ -57,9 +59,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     networks:
       - backend-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin-user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
