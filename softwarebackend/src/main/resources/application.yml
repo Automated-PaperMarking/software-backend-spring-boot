@@ -3,7 +3,7 @@ server:
 
 spring:
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
     consumer:
       group-id: ${SPRING_KAFKA_CONSUMER_GROUP_ID:grading-consumer-group}
 
@@ -24,3 +24,17 @@ app:
   kafka:
     topic: ${APP_KAFKA_TOPIC:code-submissions}
     dlq-topic: ${APP_KAFKA_DLQ_TOPIC:code-submissions-dlq}
+  otp:
+    expiry:
+      minutes: ${APP_OTP_EXPIRY_MINUTES:2}
+  account:
+    lock:
+      duration:
+        minutes: ${APP_ACCOUNT_LOCK_DURATION_MINUTES:30}
+      max-failed-attempts: ${APP_ACCOUNT_MAX_FAILED_ATTEMPTS:5}
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY:dGhpcyBpcyBhIHNlY3VyZSBzZWNyZXQga2V5IGZvciBqd3QgdG9rZW4gZ2VuZXJhdGlvbiBhbmQgdmFsaWRhdGlvbg==}
+  expiration:
+    time: ${JWT_EXPIRATION_TIME:86400000}
