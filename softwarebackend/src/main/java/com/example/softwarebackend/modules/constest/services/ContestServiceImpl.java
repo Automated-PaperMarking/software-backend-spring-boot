@@ -67,7 +67,7 @@ public class ContestServiceImpl  implements ContestService {
                         ()-> new ResourceNotFoundException("Contest not found with id: " + id)
                 );
         contestRepository.delete(contest);
-        logger.info("Deleted Contest with id: " + id);
+        logger.info("Deleted Contest with id: {}", id);
 
     }
 
@@ -75,6 +75,9 @@ public class ContestServiceImpl  implements ContestService {
     public void createContest(ContestCreateDTO contestCreateDTO) {
         var contest = ContestMapper.toEntity(contestCreateDTO);
         contest.setEnrollmentKey(passwordEncoder.encode(contestCreateDTO.getEnrollmentKey()));
+        if(contest.getEndTime().isBefore(contest.getStartTime())){
+            throw new IllegalArgumentException("End time cannot be before start time");
+        }
         var savedContest = contestRepository.save(contest);
         logger.info("Created contest with id: {}", savedContest.getId());
     }

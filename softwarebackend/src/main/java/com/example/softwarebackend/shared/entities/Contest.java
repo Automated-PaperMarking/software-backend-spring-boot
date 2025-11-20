@@ -31,6 +31,12 @@ public class Contest {
 
     private String enrollmentKey;
 
+    @Column(nullable = false)
+    private OffsetDateTime startTime;
+
+    private OffsetDateTime endTime;
+
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name="contest_problems",
