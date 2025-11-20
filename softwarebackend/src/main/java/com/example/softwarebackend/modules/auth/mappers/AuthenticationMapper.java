@@ -2,7 +2,7 @@ package com.example.softwarebackend.modules.auth.mappers;
 
 import com.example.softwarebackend.modules.auth.dto.request.RegisterRequestDTO;
 import com.example.softwarebackend.modules.auth.dto.response.UserSummaryDTO;
-import com.example.softwarebackend.modules.user.entities.User;
+import com.example.softwarebackend.shared.entities.User;
 import com.example.softwarebackend.shared.enums.Role;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -16,7 +16,7 @@ public class AuthenticationMapper {
                 .lastName(registerRequestDTO.getLastName())
                 .email(registerRequestDTO.getEmail())
                 .password(passwordEncoder.encode(registerRequestDTO.getPassword()))
-                .role(Role.USER)
+                .role(Role.STUDENT)
                 .emailVerified(false)
                 .accountLocked(false)
                 .failedLoginAttempts(0)

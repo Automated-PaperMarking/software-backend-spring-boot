@@ -7,6 +7,7 @@ import com.example.softwarebackend.modules.auth.dto.response.AuthenticationRespo
 import com.example.softwarebackend.modules.auth.mappers.AuthenticationMapper;
 import com.example.softwarebackend.modules.otp.services.OtpService;
 import com.example.softwarebackend.modules.user.services.UserService;
+import com.example.softwarebackend.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class AuthenticationService {
     private int maximumFailedAttempts;
 
     public void registerUser(RegisterRequestDTO registerRequestDTO) {
-        if (userService.getUserEntityByEmail(registerRequestDTO.getEmail()) != null) {
+        if (userService.getUserEntityByEmail(registerRequestDTO.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Registration failed. Please try again with different details");
         }
 
@@ -48,7 +49,10 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponseDTO loginUser(LoginRequestDTO loginRequestDTO) {
-        var user = userService.getUserEntityByEmail(loginRequestDTO.getEmail());
+        var user = userService.getUserEntityByEmail(loginRequestDTO.getEmail()).orElseThrow(
+                () -> new ResourceNotFoundException("User is not found with the provided email")
+        );
+
 
         if (user.isAccountLocked() && user.getLockTime() != null) {
             if (user.getLockTime().plusMinutes(lockTimeDurationInMinutes).isAfter(LocalDateTime.now())) {
@@ -92,8 +96,9 @@ public class AuthenticationService {
     }
 
     public void verifyEmail(String email, String otpCode) {
-        var user = userService.getUserEntityByEmail(email);
-
+        var user = userService.getUserEntityByEmail(email).orElseThrow(
+                () -> new ResourceNotFoundException("User is not found with the provided email")
+        );
         if (!otpService.verifyOTP(user, otpCode)) {
             throw new IllegalArgumentException("Invalid or expired OTP");
         }
@@ -107,10 +112,10 @@ public class AuthenticationService {
     }
 
     public void sendOtp(String email) {
-        var user = userService.getUserEntityByEmail(email);
-        if(!user.isEmailVerified()){
-            throw new IllegalArgumentException("Unable to send OTP. Please verify your account first");
-        }
+        var user = userService.getUserEntityByEmail(email).orElseThrow(
+                () -> new ResourceNotFoundException("User is not found with the provided email")
+        );
+
         if(user.isAccountLocked()){
             throw new IllegalArgumentException("Unable to send OTP at this time. Please try again later");
         }
@@ -118,7 +123,10 @@ public class AuthenticationService {
     }
 
     public void resetPassword(ResetPasswordRequestDTO request) {
-        var user = userService.getUserEntityByEmail(request.getEmail());
+        var user = userService.getUserEntityByEmail(request.getEmail()).orElseThrow(
+                ()-> new ResourceNotFoundException("User is not found with the provided email")
+        );
+
 
         if (!otpService.verifyOTP(user, request.getOtpCode())) {
             throw new IllegalArgumentException("Invalid or expired OTP");

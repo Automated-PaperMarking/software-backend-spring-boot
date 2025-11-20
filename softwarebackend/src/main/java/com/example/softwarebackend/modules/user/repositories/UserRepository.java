@@ -1,6 +1,6 @@
 package com.example.softwarebackend.modules.user.repositories;
 
-import com.example.softwarebackend.modules.user.entities.User;
+import com.example.softwarebackend.shared.entities.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

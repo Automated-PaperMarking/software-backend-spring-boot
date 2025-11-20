@@ -1,7 +1,7 @@
 package com.example.softwarebackend.modules.user.mappers;
 
 import com.example.softwarebackend.modules.user.dto.response.UserResponseDTO;
-import com.example.softwarebackend.modules.user.entities.User;
+import com.example.softwarebackend.shared.entities.User;
 
 public class UserMapper {
 

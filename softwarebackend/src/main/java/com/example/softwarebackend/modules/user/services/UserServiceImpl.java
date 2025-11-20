@@ -3,7 +3,7 @@ package com.example.softwarebackend.modules.user.services;
 import com.example.softwarebackend.modules.user.dto.request.ChangePasswordRequestDTO;
 import com.example.softwarebackend.modules.user.dto.request.UpdateUserRequestDTO;
 import com.example.softwarebackend.modules.user.dto.response.UserResponseDTO;
-import com.example.softwarebackend.modules.user.entities.User;
+import com.example.softwarebackend.shared.entities.User;
 import com.example.softwarebackend.modules.user.mappers.UserMapper;
 import com.example.softwarebackend.modules.user.repositories.UserRepository;
 import com.example.softwarebackend.shared.exception.ResourceNotFoundException;
@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -61,9 +62,9 @@ public class UserServiceImpl implements  UserService {
     }
 
     @Override
-    public User getUserEntityByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public Optional<User> getUserEntityByEmail(String email) {
+        return userRepository.findByEmail(email);
+
     }
 
     @Override

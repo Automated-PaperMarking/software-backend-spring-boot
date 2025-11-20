@@ -1,6 +1,7 @@
-package com.example.softwarebackend.modules.user.entities;
+package com.example.softwarebackend.shared.entities;
 
 import com.example.softwarebackend.shared.enums.Role;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -54,6 +56,23 @@ public class User implements UserDetails {
     private LocalDateTime lockTime;
 
     private LocalDateTime lastLoginAt;
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Contest> contests = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name="contest_participants",
+            joinColumns = @JoinColumn(name="user_id"),
+            inverseJoinColumns = @JoinColumn(name="contest_id")
+    )
+    @JsonManagedReference
+    private List<Contest> participatedContests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Submission> submissions = new ArrayList<>();
 
     @CreationTimestamp
     private OffsetDateTime createdAt;

@@ -1,6 +1,6 @@
 package com.example.softwarebackend.modules.auth.services;
 
-import com.example.softwarebackend.modules.user.entities.User;
+import com.example.softwarebackend.shared.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
