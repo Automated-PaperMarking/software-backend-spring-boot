@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class ContestServiceImpl  implements ContestService {
     //logger
     private static final Logger logger = LoggerFactory.getLogger(ContestServiceImpl.class);
     private final ContestRepository contestRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public PageResponseDTO<ContestResponseDTO> getAllProjects(String search, int page, int size, String[] sort) {
@@ -65,12 +67,18 @@ public class ContestServiceImpl  implements ContestService {
                         ()-> new ResourceNotFoundException("Contest not found with id: " + id)
                 );
         contestRepository.delete(contest);
+        logger.info("Deleted Contest with id: {}", id);
 
     }
 
     @Override
     public void createContest(ContestCreateDTO contestCreateDTO) {
         var contest = ContestMapper.toEntity(contestCreateDTO);
+        contest.setEnrollmentKey(passwordEncoder.encode(contestCreateDTO.getEnrollmentKey()));
+        if(contest.getEndTime().isBefore(contest.getStartTime())){
+            throw new IllegalArgumentException("End time cannot be before start time");
+        }
         var savedContest = contestRepository.save(contest);
+        logger.info("Created contest with id: {}", savedContest.getId());
     }
 }

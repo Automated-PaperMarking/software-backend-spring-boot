@@ -13,4 +13,9 @@ public class ContestResponseDTO {
     private String id;
     private String name;
     private String description;
+    private String startTime;
+    private String endTime;
+    private String createdAt;
+    private String updatedAt;
+
 }

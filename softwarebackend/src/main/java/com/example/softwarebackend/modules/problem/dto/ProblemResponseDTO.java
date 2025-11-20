@@ -20,6 +20,6 @@ public class ProblemResponseDTO {
     private DifficultyLevel difficultyLevel;
     private String contestId;
     private List<TestCaseResponseDTO> testCases;
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
 }
