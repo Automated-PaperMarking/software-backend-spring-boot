@@ -14,8 +14,8 @@ public class UserMapper {
                 .role(user.getRole())
                 .emailVerified(user.isEmailVerified())
                 .accountLocked(user.isAccountLocked())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
+                .createdAt(user.getCreatedAt().toString())
+                .updatedAt(user.getUpdatedAt().toString())
                 .build();
     }
 }

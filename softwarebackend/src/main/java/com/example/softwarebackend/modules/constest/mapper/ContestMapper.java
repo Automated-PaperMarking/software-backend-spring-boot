@@ -3,6 +3,8 @@ package com.example.softwarebackend.modules.constest.mapper;
 import com.example.softwarebackend.modules.constest.dto.ContestCreateDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestResponseDTO;
 import com.example.softwarebackend.shared.entities.Contest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class ContestMapper {
 

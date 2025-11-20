@@ -28,8 +28,8 @@ public class ProblemMapper {
                 .statement(problem.getStatement())
                 .difficultyLevel(problem.getDifficultyLevel())
                 .testCases(problem.getTestCases().stream().map(TestCaseMapper::toDTO).toList())
-                .createdAt(problem.getCreatedAt())
-                .updatedAt(problem.getUpdatedAt())
+                .createdAt(problem.getCreatedAt().toString())
+                .updatedAt(problem.getUpdatedAt().toString())
                 .build();
     }
 }

@@ -21,6 +21,6 @@ public class UserResponseDTO {
     private Role role;
     private boolean emailVerified;
     private boolean accountLocked;
-    private OffsetDateTime createdAt;
-    private OffsetDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
 }

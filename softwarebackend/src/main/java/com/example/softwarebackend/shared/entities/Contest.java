@@ -29,6 +29,8 @@ public class Contest {
 
     private String description;
 
+    private String enrollmentKey;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name="contest_problems",
