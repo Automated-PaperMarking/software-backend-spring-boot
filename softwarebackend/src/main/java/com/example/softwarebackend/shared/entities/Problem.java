@@ -1,6 +1,7 @@
 package com.example.softwarebackend.shared.entities;
 
 import com.example.softwarebackend.shared.enums.DifficultyLevel;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,11 @@ public class Problem {
     @ManyToMany(mappedBy = "problems")
     @JsonManagedReference
     private List<Contest> contests;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id", nullable = false)
+    @JsonBackReference
+    private User author;
 
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference

@@ -1,11 +1,14 @@
 package com.example.softwarebackend.modules.problem.services;
 
+import com.example.softwarebackend.modules.auth.services.JwtService;
 import com.example.softwarebackend.modules.problem.dto.ProblemCreateDTO;
 import com.example.softwarebackend.modules.problem.dto.ProblemResponseDTO;
 import com.example.softwarebackend.modules.problem.mapper.ProblemMapper;
 import com.example.softwarebackend.modules.problem.repository.ProblemRepository;
+import com.example.softwarebackend.modules.user.services.UserService;
 import com.example.softwarebackend.shared.dto.response.PageResponseDTO;
 import com.example.softwarebackend.shared.entities.Problem;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,6 +30,8 @@ public class ProblemServiceImpl implements ProblemService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProblemServiceImpl.class);
     private final ProblemRepository problemRepository;
+    private final UserService userService;
+    private final JwtService jwtService;
 
     @Override
     public PageResponseDTO<ProblemResponseDTO> getAllProblems(String search, int page, int size, String[] sort) {
@@ -59,19 +65,38 @@ public class ProblemServiceImpl implements ProblemService {
         return ProblemMapper.toDTO(problem);
     }
 
+    //ownership needed
+    @Transactional
     @Override
     public void deleteById(UUID id) {
         var problem = problemRepository.findById(id)
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Problem not found with id: " + id)
                 );
+        checkOwnership(problem.getAuthor().getId());
         problemRepository.delete(problem);
     }
 
+    @Transactional
     @Override
     public void createProblem(ProblemCreateDTO problemCreateDTO) {
         var problem = ProblemMapper.toEntity(problemCreateDTO);
+        var author = userService.getUserEntityById(UUID.fromString(jwtService.getUserIdFromToken()))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        problem.setAuthor(author);
         var savedProblem = problemRepository.save(problem);
         logger.info("Created problem with id: {}", savedProblem.getId());
+    }
+
+    @Override
+    public Optional<Problem> getProblemEntityById(UUID id) {
+        return problemRepository.findById(id);
+    }
+
+    public void checkOwnership(UUID authorId) {
+        String userId= jwtService.getUserIdFromToken();
+        if(!authorId.toString().equals(userId)){
+            throw new IllegalArgumentException("You are not the author of this contest");
+        }
     }
 }

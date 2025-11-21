@@ -1,5 +1,6 @@
 package com.example.softwarebackend.modules.constest.controllers;
 
+import com.example.softwarebackend.modules.constest.dto.AddProblemsToContestDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestCreateDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestResponseDTO;
 import com.example.softwarebackend.modules.constest.services.ContestService;
@@ -21,7 +22,7 @@ public class ContestController {
     @GetMapping("/all")
     public ResponseEntity<ApiResponseDTO<?>> getAllProjects(@RequestParam(required = false) String search, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "id,asc") String[] sort) {
 
-        var currentPage = contestService.getAllProjects(search, page, size, sort);
+        var currentPage = contestService.getAllContests(search, page, size, sort);
         ApiResponseDTO<PageResponseDTO<ContestResponseDTO>> response = new ApiResponseDTO<>("200", "Projects retrieved successfully", currentPage, true);
         return ResponseEntity.ok(response);
     }
@@ -43,5 +44,11 @@ public class ContestController {
     public ResponseEntity<ApiResponseDTO<?>> deleteContest(@RequestParam String id) {
         contestService.deleteById(UUID.fromString(id));
         return ResponseEntity.ok(new ApiResponseDTO<>("200", "Delete Contest endpoint not implemented yet", null, false));
+    }
+
+    @PostMapping("/assign-problems")
+    public ResponseEntity<ApiResponseDTO<?>> assignProblemsToContest(@Valid @RequestBody AddProblemsToContestDTO problemsDTO) {
+        contestService.assignProblemsToContest(problemsDTO);
+        return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problems assigned to contest successfully", null, true));
     }
 }
