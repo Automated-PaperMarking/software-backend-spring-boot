@@ -32,7 +32,11 @@ public class JwtService {
         return extractClaim(token, claims -> {
             Object id = claims.get("id");
             if (id instanceof String) {
-                return UUID.fromString((String) id);
+                try {
+                    return UUID.fromString((String) id);
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
             }
             return null;
         });
