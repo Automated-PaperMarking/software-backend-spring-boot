@@ -21,7 +21,7 @@ public class ProblemController {
 
     // Get all problems
     @GetMapping("/all")
-    public ResponseEntity<ApiResponseDTO<?>> getAllProblems(@RequestParam(required = false) String search,
+    public ResponseEntity<ApiResponseDTO<PageResponseDTO<ProblemResponseDTO>>> getAllProblems(@RequestParam(required = false) String search,
                                                            @RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(defaultValue = "id,asc") String[] sort) {
@@ -32,7 +32,7 @@ public class ProblemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponseDTO<?>> getProblemById(@PathVariable String id) {
+    public ResponseEntity<ApiResponseDTO<ProblemResponseDTO>> getProblemById(@PathVariable String id) {
         ProblemResponseDTO problemResponseDTO = problemService.findById(UUID.fromString(id));
         ApiResponseDTO<ProblemResponseDTO> response = new ApiResponseDTO<>("200", "Problem retrieved successfully", problemResponseDTO, true);
         return ResponseEntity.ok(response);
@@ -49,4 +49,5 @@ public class ProblemController {
         problemService.deleteById(UUID.fromString(id));
         return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problem deleted successfully", null, true));
     }
+
 }

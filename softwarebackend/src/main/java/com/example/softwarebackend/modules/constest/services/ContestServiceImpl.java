@@ -1,12 +1,11 @@
 package com.example.softwarebackend.modules.constest.services;
 
-import com.example.softwarebackend.modules.constest.dto.AddProblemsToContestDTO;
-import com.example.softwarebackend.modules.constest.dto.ContestCreateDTO;
-import com.example.softwarebackend.modules.constest.dto.ContestResponseDTO;
-import com.example.softwarebackend.modules.constest.dto.RemoveProblemsToContestDTO;
+import com.example.softwarebackend.modules.constest.dto.*;
 import com.example.softwarebackend.modules.constest.mapper.ContestMapper;
 import com.example.softwarebackend.modules.constest.repository.ContestRepository;
 import com.example.softwarebackend.modules.auth.services.JwtService;
+import com.example.softwarebackend.modules.problem.dto.ProblemResponseDTO;
+import com.example.softwarebackend.modules.problem.mapper.ProblemMapper;
 import com.example.softwarebackend.modules.problem.services.ProblemService;
 import com.example.softwarebackend.modules.user.services.UserService;
 import com.example.softwarebackend.shared.dto.response.PageResponseDTO;
@@ -87,8 +86,48 @@ public class ContestServiceImpl  implements ContestService {
         logger.info("Created contest with id: {}", savedContest.getId());
     }
 
+    @Override
+    public List<ProblemResponseDTO> getContestProblems(UUID contestId) {
+       var contest = contestRepository.findById(contestId)
+               .orElseThrow(
+                       ()-> new ResourceNotFoundException("Contest not found with id: " )
+               );
+        return contest.getProblems()
+                .stream()
+                .map(ProblemMapper::toDTO)
+                .toList();
+    }
 
-    /// ownership need section
+    //enroll to contest
+    @Transactional
+    @Override
+    public void enrollToContest(ContestEnrollRequestDTO contestEnrollRequestDTO) {
+        var contest = contestRepository.findById(UUID.fromString(contestEnrollRequestDTO.getContestId()))
+                .orElseThrow(
+                        ()-> new ResourceNotFoundException("Contest not found with id " )
+                );
+        //get current user
+        var currentUser = userService.getUserEntityById(UUID.fromString(jwtService.getUserIdFromToken()))
+                .orElseThrow(
+                        ()-> new ResourceNotFoundException("User not found")
+                );
+        //check if user is already enrolled
+        if(contest.getParticipants().contains(currentUser)){
+            throw new IllegalArgumentException("User is already enrolled in the contest");
+        }
+        //check enrollment key
+        if(!passwordEncoder.matches(contestEnrollRequestDTO.getEnrollmentKey(), contest.getEnrollmentKey())){
+            throw new IllegalArgumentException("Invalid enrollment key");
+        }
+        //enroll user
+        currentUser.getParticipatedContests().add(contest);
+        contest.getParticipants().add(currentUser);
+        userService.saveUserEntity(currentUser);
+        logger.info("User with id: {} enrolled to contest with id: {}", currentUser.getId(), contest.getId());
+    }
+
+
+    /// ownership need section //////////////
 
     @Transactional
     @Override
@@ -177,6 +216,9 @@ public class ContestServiceImpl  implements ContestService {
 
         }
 
+        //save the contest to persist the changes
+        contestRepository.save(contest);
+        logger.info("Successfully removed {} problems from contest with id: {}", problemIds.size(), contest.getId());
 
     }
 

@@ -65,18 +65,6 @@ public class ProblemServiceImpl implements ProblemService {
         return ProblemMapper.toDTO(problem);
     }
 
-    //ownership needed
-    @Transactional
-    @Override
-    public void deleteById(UUID id) {
-        var problem = problemRepository.findById(id)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Problem not found with id: " + id)
-                );
-        checkOwnership(problem.getAuthor().getId());
-        problemRepository.delete(problem);
-    }
-
     @Transactional
     @Override
     public void createProblem(ProblemCreateDTO problemCreateDTO) {
@@ -93,10 +81,24 @@ public class ProblemServiceImpl implements ProblemService {
         return problemRepository.findById(id);
     }
 
-    public void checkOwnership(UUID authorId) {
-        String userId= jwtService.getUserIdFromToken();
-        if(!authorId.toString().equals(userId)){
-            throw new IllegalArgumentException("You are not the author of this contest");
-        }
+
+
+    /// /////////////////////////////////////////
+    //ownership needed
+    @Transactional
+    @Override
+    public void deleteById(UUID id) {
+        var problem = problemRepository.findById(id)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Problem not found with id: " + id)
+                );
+        String currentUserId = jwtService.getUserIdFromToken();
+         problem.verifyOwner(UUID.fromString(currentUserId));
+        problemRepository.delete(problem);
     }
+
+
+
+
+
 }

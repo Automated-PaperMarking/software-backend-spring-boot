@@ -1,9 +1,6 @@
 package com.example.softwarebackend.modules.constest.controllers;
 
-import com.example.softwarebackend.modules.constest.dto.AddProblemsToContestDTO;
-import com.example.softwarebackend.modules.constest.dto.ContestCreateDTO;
-import com.example.softwarebackend.modules.constest.dto.ContestResponseDTO;
-import com.example.softwarebackend.modules.constest.dto.RemoveProblemsToContestDTO;
+import com.example.softwarebackend.modules.constest.dto.*;
 import com.example.softwarebackend.modules.constest.services.ContestService;
 import com.example.softwarebackend.shared.dto.response.ApiResponseDTO;
 import com.example.softwarebackend.shared.dto.response.PageResponseDTO;
@@ -19,6 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ContestController {
     private final ContestService contestService;
+
     //get all contests
     @GetMapping("/all")
     public ResponseEntity<ApiResponseDTO<?>> getAllProjects(@RequestParam(required = false) String search, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "id,asc") String[] sort) {
@@ -57,5 +55,18 @@ public class ContestController {
     public ResponseEntity<ApiResponseDTO<?>> removeProblemsFromContest(@Valid @RequestBody RemoveProblemsToContestDTO problemsDTO) {
         contestService.removeProblemFromContest(problemsDTO);
         return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problems removed from contest successfully", null, true));
+    }
+
+    @GetMapping("/problems/{contestId}")
+    public ResponseEntity<ApiResponseDTO<?>> getProblemsByContestId(@PathVariable String contestId) {
+        var problems = contestService.getContestProblems(UUID.fromString(contestId));
+        ApiResponseDTO<?> response = new ApiResponseDTO<>("200", "Problems retrieved successfully", problems, true);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/enroll")
+    public ResponseEntity<ApiResponseDTO<?>> enrollToContest(@Valid @RequestBody ContestEnrollRequestDTO requestDTO) {
+        contestService.enrollToContest(requestDTO);
+        return ResponseEntity.ok(new ApiResponseDTO<>("200", "Enrolled to contest successfully", null, true));
     }
 }
