@@ -3,6 +3,7 @@ package com.example.softwarebackend.modules.constest.services;
 import com.example.softwarebackend.modules.constest.dto.AddProblemsToContestDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestCreateDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestResponseDTO;
+import com.example.softwarebackend.modules.constest.dto.RemoveProblemsToContestDTO;
 import com.example.softwarebackend.modules.constest.mapper.ContestMapper;
 import com.example.softwarebackend.modules.constest.repository.ContestRepository;
 import com.example.softwarebackend.modules.auth.services.JwtService;
@@ -87,7 +88,8 @@ public class ContestServiceImpl  implements ContestService {
     }
 
 
-    //ownership needed
+    /// ownership need section
+
     @Transactional
     @Override
     public void deleteById(UUID id) {
@@ -95,8 +97,13 @@ public class ContestServiceImpl  implements ContestService {
                 .orElseThrow(
                         ()-> new ResourceNotFoundException("Contest not found with id " )
                 );
-        checkOwnership(contest.getAuthor().getId());
+
+        //check ownership
+        String currentUserId = jwtService.getUserIdFromToken();
+        contest.verifyOwner(UUID.fromString(currentUserId));
+
         contestRepository.delete(contest);
+
         logger.info("Deleted Contest with id: {}", id);
 
     }
@@ -110,7 +117,8 @@ public class ContestServiceImpl  implements ContestService {
                         ()-> new ResourceNotFoundException("Contest not found with id " )
                 );
         //check ownership
-        checkOwnership(contest.getAuthor().getId());
+        String currentUserId = jwtService.getUserIdFromToken();
+        contest.verifyOwner(UUID.fromString(currentUserId));
         //assign problems
         var problemIds = addProblemsToContestDTO.getProblemIds().stream()
                 .map(UUID::fromString)
@@ -123,21 +131,56 @@ public class ContestServiceImpl  implements ContestService {
                             ()-> new ResourceNotFoundException("Problem not found with id " + problemId)
                     );
             //check ownership of the problem
-            checkOwnership(problem.getAuthor().getId());
+            problem.verifyOwner(UUID.fromString(currentUserId));
+            if(contest.getProblems().contains(problem)){
+                throw new IllegalArgumentException("Problem is already assigned to contest " );
+            }
             //save assignment
             contest.getProblems().add(problem);
             logger.info("Assigned Problem with id: {} to Contest with id: {}", problemId, contest.getId());
         });
 
+        //save the contest to persist the problem assignments
+        contestRepository.save(contest);
+        logger.info("Successfully assigned {} problems to contest with id: {}", problemIds.size(), contest.getId());
 
     }
 
-    public void checkOwnership(UUID authorId) {
-        String userId= jwtService.getUserIdFromToken();
-        if(!authorId.toString().equals(userId)){
-            throw new IllegalArgumentException("You are not the author of this contest");
+    @Transactional
+    @Override
+    public void removeProblemFromContest(RemoveProblemsToContestDTO removeProblemsToContestDTO) {
+
+        Contest contest = contestRepository.findById(UUID.fromString(removeProblemsToContestDTO.getContestId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Contest not found"));
+
+        // Check ownership
+        String currentUserId = jwtService.getUserIdFromToken();
+        contest.verifyOwner(UUID.fromString(currentUserId));
+        List<UUID> problemIds = removeProblemsToContestDTO.getProblemIds().stream()
+                .map(UUID::fromString)
+                .toList();
+        for(UUID problemId : problemIds){
+            var problem = problemService.getProblemEntityById(problemId)
+                    .orElseThrow(
+                            ()-> new ResourceNotFoundException("Problem not found with id " )
+                    );
+            //check ownership of the problem
+            problem.verifyOwner(UUID.fromString(currentUserId));
+            //check if problem is assigned to contest
+            if(!contest.getProblems().contains(problem)){
+                throw new IllegalArgumentException("Problem is not assigned to contest");
+            }
+            //remove problem from contest
+            contest.getProblems().remove(problem);
+            problem.getContests().remove(contest);
+            logger.info("Successfully removed {} problems to contest with id: {}", problemIds.size(), contest.getId());
+
         }
+
+
     }
+
+
 
 
 

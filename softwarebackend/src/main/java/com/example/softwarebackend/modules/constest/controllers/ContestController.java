@@ -3,6 +3,7 @@ package com.example.softwarebackend.modules.constest.controllers;
 import com.example.softwarebackend.modules.constest.dto.AddProblemsToContestDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestCreateDTO;
 import com.example.softwarebackend.modules.constest.dto.ContestResponseDTO;
+import com.example.softwarebackend.modules.constest.dto.RemoveProblemsToContestDTO;
 import com.example.softwarebackend.modules.constest.services.ContestService;
 import com.example.softwarebackend.shared.dto.response.ApiResponseDTO;
 import com.example.softwarebackend.shared.dto.response.PageResponseDTO;
@@ -50,5 +51,11 @@ public class ContestController {
     public ResponseEntity<ApiResponseDTO<?>> assignProblemsToContest(@Valid @RequestBody AddProblemsToContestDTO problemsDTO) {
         contestService.assignProblemsToContest(problemsDTO);
         return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problems assigned to contest successfully", null, true));
+    }
+
+    @PostMapping("/remove-problems")
+    public ResponseEntity<ApiResponseDTO<?>> removeProblemsFromContest(@Valid @RequestBody RemoveProblemsToContestDTO problemsDTO) {
+        contestService.removeProblemFromContest(problemsDTO);
+        return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problems removed from contest successfully", null, true));
     }
 }
