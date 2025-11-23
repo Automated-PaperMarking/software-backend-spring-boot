@@ -22,8 +22,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -90,8 +92,34 @@ public class ContestServiceImpl  implements ContestService {
     public List<ProblemResponseDTO> getContestProblems(UUID contestId) {
        var contest = contestRepository.findById(contestId)
                .orElseThrow(
-                       ()-> new ResourceNotFoundException("Contest not found with id: " )
+                       ()-> new ResourceNotFoundException("Contest not found with id: " + contestId)
                );
+
+       // Get current user
+       var currentUser = userService.getUserEntityById(UUID.fromString(jwtService.getUserIdFromToken()))
+               .orElseThrow(
+                       ()-> new ResourceNotFoundException("User not found")
+               );
+
+       // Check contest is started
+       OffsetDateTime now = OffsetDateTime.now();
+       boolean isContestStarted = now.isAfter(contest.getStartTime());
+
+       if(!isContestStarted){
+           // Check if current user is the contest owner
+           if(!contest.getAuthor().getId().equals(currentUser.getId())){
+               throw new IllegalArgumentException("Contest has not started yet");
+           }
+       } else {
+           // Contest has started - check if user is participant or owner
+           boolean isOwner = contest.getAuthor().getId().equals(currentUser.getId());
+           boolean isParticipant = contest.getParticipants().contains(currentUser);
+
+           if(!isOwner && !isParticipant){
+               throw new IllegalArgumentException("You are not enrolled in this contest");
+           }
+       }
+
         return contest.getProblems()
                 .stream()
                 .map(ProblemMapper::toDTO)
@@ -124,6 +152,12 @@ public class ContestServiceImpl  implements ContestService {
         contest.getParticipants().add(currentUser);
         userService.saveUserEntity(currentUser);
         logger.info("User with id: {} enrolled to contest with id: {}", currentUser.getId(), contest.getId());
+    }
+
+
+    @Override
+    public Optional<Contest> getContestEntityById(UUID uuid) {
+        return  contestRepository.findById(uuid);
     }
 
 
@@ -221,10 +255,6 @@ public class ContestServiceImpl  implements ContestService {
         logger.info("Successfully removed {} problems from contest with id: {}", problemIds.size(), contest.getId());
 
     }
-
-
-
-
 
 
 

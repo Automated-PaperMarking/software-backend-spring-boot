@@ -1,4 +1,4 @@
-package com.example.softwarebackend.modules.grader.controller;
+package com.example.softwarebackend.modules.submission.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;

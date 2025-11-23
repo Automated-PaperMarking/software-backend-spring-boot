@@ -1,5 +1,6 @@
-package com.example.softwarebackend.modules.grader.model;
+package com.example.softwarebackend.modules.submission.model;
 
+import com.example.softwarebackend.shared.enums.GradingResultStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

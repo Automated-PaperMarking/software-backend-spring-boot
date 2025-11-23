@@ -1,5 +1,6 @@
 package com.example.softwarebackend.shared.entities;
 
+import com.example.softwarebackend.shared.enums.GradingResultStatus;
 import com.example.softwarebackend.shared.enums.SubmissionType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -42,6 +43,19 @@ public class Submission {
     @JoinColumn(name = "problem_id")
     @JsonBackReference
     private Problem problem;
+
+    @Column(nullable = false)
+    private double understandingLogic;
+    @Column(nullable = false)
+    private double correctnessScore;
+    @Column(nullable = false)
+    private double readabilityScore;
+    @Column(nullable = false)
+    private double totalScore;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private GradingResultStatus gradingResultStatus;
+
     @CreationTimestamp
     private OffsetDateTime createdAt;
     @UpdateTimestamp

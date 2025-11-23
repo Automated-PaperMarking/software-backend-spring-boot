@@ -4,9 +4,11 @@ package com.example.softwarebackend.modules.constest.services;
 import com.example.softwarebackend.modules.constest.dto.*;
 import com.example.softwarebackend.modules.problem.dto.ProblemResponseDTO;
 import com.example.softwarebackend.shared.dto.response.PageResponseDTO;
+import com.example.softwarebackend.shared.entities.Contest;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ContestService {
@@ -32,4 +34,6 @@ public interface ContestService {
 
     @Transactional
     void removeProblemFromContest(RemoveProblemsToContestDTO removeProblemsToContestDTO);
+
+    public Optional<Contest> getContestEntityById(UUID uuid);
 }
