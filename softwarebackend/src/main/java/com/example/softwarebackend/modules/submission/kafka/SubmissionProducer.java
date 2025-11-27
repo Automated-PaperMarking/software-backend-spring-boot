@@ -1,6 +1,6 @@
-package com.example.softwarebackend.modules.grader.kafka;
+package com.example.softwarebackend.modules.submission.kafka;
 
-import com.example.softwarebackend.modules.grader.dto.CodeSubmission;
+import com.example.softwarebackend.modules.submission.dto.SubmissionPendingRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,10 +15,10 @@ import org.springframework.stereotype.Component;
 public class SubmissionProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(SubmissionProducer.class);
-    private final KafkaTemplate<String, CodeSubmission> kafkaTemplate;
+    private final KafkaTemplate<String, SubmissionPendingRequestDTO> kafkaTemplate;
     private final String topic;
 
-    public SubmissionProducer(KafkaTemplate<String, CodeSubmission> kafkaTemplate,
+    public SubmissionProducer(KafkaTemplate<String, SubmissionPendingRequestDTO> kafkaTemplate,
                               @Value("${app.kafka.topic}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         this.topic = topic;
@@ -27,8 +27,8 @@ public class SubmissionProducer {
     /**
      * Publish submission asynchronously. Key is studentId (so messages for one student go to same partition).
      */
-    public void publish(CodeSubmission submission) {
-        String key = submission.getGradedResultId() != null ? submission.getGradedResultId() : "unknown";
+    public void publish(SubmissionPendingRequestDTO submission) {
+        String key = submission.getSubmissionId() != null ? submission.getSubmissionId() : "unknown";
         kafkaTemplate.send(topic, key, submission)
                 .whenComplete((result, ex) -> {
                     if (ex == null) {
@@ -38,7 +38,6 @@ public class SubmissionProducer {
                     } else {
                         // publish failed — in production consider retrying or writing to external store
                         logger.error("Failed to publish submission for student={}: {}", key, ex.getMessage(), ex);
-                        // TODO: Add retry or error handling logic as needed
                     }
                 });
     }

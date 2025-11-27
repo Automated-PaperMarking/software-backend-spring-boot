@@ -1,6 +1,7 @@
 package com.example.softwarebackend.shared.entities;
 
 import com.example.softwarebackend.shared.enums.DifficultyLevel;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -35,6 +37,11 @@ public class Problem {
     @JsonManagedReference
     private List<Contest> contests;
 
+    @ManyToOne
+    @JoinColumn(name = "author_id", nullable = false)
+    @JsonBackReference
+    private User author;
+
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<TestCase> testCases = new ArrayList<>();
@@ -51,4 +58,14 @@ public class Problem {
 
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
+
+    public void verifyOwner(UUID currentUserId) {
+        if (author == null || author.getId() == null) {
+            throw new AccessDeniedException("Problem has no owner.");
+        }
+
+        if (!author.getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You are not the owner of this problem.");
+        }
+    }
 }

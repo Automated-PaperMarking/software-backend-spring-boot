@@ -68,6 +68,11 @@ public class UserServiceImpl implements  UserService {
     }
 
     @Override
+    public Optional<User> getUserEntityById(UUID id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
     public User saveUserEntity(User user) {
         return userRepository.save(user);
     }

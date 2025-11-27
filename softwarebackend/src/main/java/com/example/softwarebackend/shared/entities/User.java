@@ -59,7 +59,7 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
-    private List<Contest> contests = new ArrayList<>();
+    private List<Contest> authoredContests = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -73,6 +73,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Problem> authoredProblems = new ArrayList<>();
 
     @CreationTimestamp
     private OffsetDateTime createdAt;

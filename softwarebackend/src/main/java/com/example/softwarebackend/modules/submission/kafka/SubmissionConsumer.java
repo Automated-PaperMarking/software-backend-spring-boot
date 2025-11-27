@@ -1,8 +1,7 @@
-package com.example.softwarebackend.modules.grader.kafka;
+package com.example.softwarebackend.modules.submission.kafka;
 
-import com.example.softwarebackend.modules.grader.dto.CodeSubmission;
-import com.example.softwarebackend.modules.grader.service.GeminiService;
-import com.example.softwarebackend.modules.grader.service.GradedResultService;
+import com.example.softwarebackend.modules.submission.dto.SubmissionPendingRequestDTO;
+import com.example.softwarebackend.modules.submission.service.GeminiService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,18 +18,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class SubmissionConsumer {
     private  static final Logger logger = LoggerFactory.getLogger(SubmissionConsumer.class);
-    private final KafkaTemplate<String, CodeSubmission> kafkaTemplate;
-    private final String dlqTopic;
     private final GeminiService geminiService;
-    private  final GradedResultService gradedResultService;
 
     public SubmissionConsumer(GeminiService geminiService,
-                              KafkaTemplate<String, CodeSubmission> kafkaTemplate,
-                              @Value("${app.kafka.dlq-topic}") String dlqTopic,
-                              GradedResultService gradedResultService) {
-        this.gradedResultService = gradedResultService;
-        this.kafkaTemplate = kafkaTemplate;
-        this.dlqTopic = dlqTopic;
+                              KafkaTemplate<String, SubmissionPendingRequestDTO> kafkaTemplate,
+                              @Value("${app.kafka.dlq-topic}") String dlqTopic) {
         this.geminiService = geminiService;
     }
 
@@ -38,10 +30,10 @@ public class SubmissionConsumer {
             topics = "${app.kafka.topic}",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void listen(ConsumerRecord<String, CodeSubmission> record,
+    public void listen(ConsumerRecord<String, SubmissionPendingRequestDTO> record,
                        Acknowledgment acknowledgment) {
 
-        CodeSubmission submission = record.value();
+        SubmissionPendingRequestDTO submission = record.value();
         String key = record.key();
 
         try {

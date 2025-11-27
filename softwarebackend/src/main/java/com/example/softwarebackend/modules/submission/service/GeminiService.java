@@ -1,7 +1,7 @@
-package com.example.softwarebackend.modules.grader.service;
+package com.example.softwarebackend.modules.submission.service;
 
-import com.example.softwarebackend.modules.grader.dto.CodeSubmission;
-import com.example.softwarebackend.modules.grader.dto.GradedResultDTO;
+import com.example.softwarebackend.modules.submission.dto.GradedSubmissionDTO;
+import com.example.softwarebackend.modules.submission.dto.SubmissionPendingRequestDTO;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 
@@ -19,24 +19,24 @@ public class GeminiService {
     private static final Logger logger = LoggerFactory.getLogger(GeminiService.class);
 
     private final Client client;
-    private final GradedResultService gradedResultService;
+    private final SubmissionService submissionService;
     private final Retry geminiServiceRetry;
 
-    public GeminiService(Client client, GradedResultService gradedResultService, Retry geminiServiceRetry) {
-        this.gradedResultService = gradedResultService;
+    public GeminiService(Client client, SubmissionService gradedResultService, Retry geminiServiceRetry) {
+        this.submissionService = gradedResultService;
         this.client = client;
         this.geminiServiceRetry = geminiServiceRetry;
     }
 
-    public void gradeTheCode(CodeSubmission codeSubmission) {
+    public void gradeTheCode(SubmissionPendingRequestDTO codeSubmission) {
         // Use programmatic retry with fallback
         Supplier<Void> gradeSupplier = Retry.decorateSupplier(geminiServiceRetry, () -> {
             try {
                 performGrading(codeSubmission);
                 return null;
             } catch (Exception e) {
-                logger.error("Error during grading attempt for student {}: {}",
-                           codeSubmission.getStudentId(), e.getMessage());
+                logger.error("Error during grading attempt for submission {}: {}",
+                           codeSubmission.getSubmissionId(), e.getMessage());
                 throw e;
             }
         });
@@ -44,19 +44,13 @@ public class GeminiService {
         try {
             gradeSupplier.get();
         } catch (Exception e) {
-            logger.error("All retry attempts failed for student {}. Executing fallback.",
-                       codeSubmission.getStudentId());
+            logger.error("All retry attempts failed for submission {}. Executing fallback.",
+                       codeSubmission.getSubmissionId());
             gradeFallback(codeSubmission, e);
         }
     }
 
-    private void performGrading(CodeSubmission codeSubmission) {
-        // Validate that gradedResultId is not null
-        if (codeSubmission.getGradedResultId() == null || codeSubmission.getGradedResultId().trim().isEmpty()) {
-            logger.error("Cannot grade code submission: gradedResultId is null or empty for student: {}",
-                        codeSubmission.getStudentId());
-            throw new IllegalArgumentException("GradedResultId cannot be null or empty");
-        }
+    private void performGrading(SubmissionPendingRequestDTO codeSubmission) {
 
         // Build prompt with the actual code inserted
         String prompt = """
@@ -92,7 +86,7 @@ public class GeminiService {
                 Code to evaluate:   
                 """ + "\n" + codeSubmission.getCode();
 
-        logger.info("🚀 Attempting to grade code for student: {}", codeSubmission.getStudentId());
+        logger.info("🚀 Attempting to grade code for submission: {}", codeSubmission.getSubmissionId());
 
         // Call Gemini model
         GenerateContentResponse response =
@@ -109,18 +103,17 @@ public class GeminiService {
             throw new RuntimeException("Invalid JSON response from Gemini service");
         }
 
-        GradedResultDTO gradedResult = getGradedResultDTO(codeSubmission, jsonString);
-        gradedResultService.updateGradedResult(gradedResult);
+        GradedSubmissionDTO gradedResult = getGradedResultDTO(codeSubmission, jsonString);
+        submissionService.updateSubmission(gradedResult);
 
-        logger.info("✅ Successfully graded code for student: {}", codeSubmission.getStudentId());
+        logger.info("✅ Successfully graded code for submission: {}", codeSubmission.getSubmissionId());
     }
 
-    private static GradedResultDTO getGradedResultDTO(CodeSubmission codeSubmission, String jsonString) {
+    private static GradedSubmissionDTO getGradedResultDTO(SubmissionPendingRequestDTO codeSubmission, String jsonString) {
         JSONObject jsonObject = new JSONObject(jsonString);
 
-        GradedResultDTO gradedResult = new GradedResultDTO();
-        gradedResult.setGradedResultId(codeSubmission.getGradedResultId()); // Fix: Set the gradedResultId
-        gradedResult.setStudentId(codeSubmission.getStudentId());
+        GradedSubmissionDTO gradedResult = new GradedSubmissionDTO();
+        gradedResult.setSubmissionId(codeSubmission.getSubmissionId()); // Fix: Set the gradedResultId
         gradedResult.setUnderstandingLogic(jsonObject.getDouble("understanding_logic"));
         gradedResult.setCorrectnessScore(jsonObject.getDouble("correctness_score"));
         gradedResult.setReadabilityScore(jsonObject.getDouble("readability_score"));
@@ -129,14 +122,14 @@ public class GeminiService {
     }
 
     // Fallback method for circuit breaker
-    public void gradeFallback(CodeSubmission codeSubmission, Exception ex) {
+    public void gradeFallback(SubmissionPendingRequestDTO codeSubmission, Exception ex) {
         logger.error("Circuit breaker activated for code submission. Falling back to default grade. " +
                 "Submission ID: {}, Error: {}",
-                codeSubmission.getStudentId() != null ? codeSubmission.getStudentId() : "unknown",
+                codeSubmission.getSubmissionId() != null ? codeSubmission.getSubmissionId() : "unknown",
                 ex.getMessage(), ex);
 
         //update the graded result status to FAILED
-        gradedResultService.updateFailedGradingResult(codeSubmission.getGradedResultId());
+        submissionService.updateFailedGSubmission(codeSubmission.getSubmissionId());
 
         throw new RuntimeException("Gemini service failed");
 

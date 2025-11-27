@@ -1,6 +1,6 @@
 package com.example.softwarebackend.shared.config;
 
-import com.example.softwarebackend.modules.grader.dto.CodeSubmission;
+import com.example.softwarebackend.modules.submission.dto.SubmissionPendingRequestDTO;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -53,7 +53,7 @@ public class KafkaConfig {
 
     // ProducerFactory + KafkaTemplate using JsonSerializer for values
     @Bean
-    public ProducerFactory<String, CodeSubmission> producerFactory(org.springframework.core.env.Environment env) {
+    public ProducerFactory<String, SubmissionPendingRequestDTO> producerFactory(org.springframework.core.env.Environment env) {
         Map<String, Object> props = new HashMap<>();
         props.put(org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 env.getProperty("spring.kafka.bootstrap-servers"));
@@ -72,14 +72,14 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, CodeSubmission> kafkaTemplate(ProducerFactory<String, CodeSubmission> pf) {
+    public KafkaTemplate<String, SubmissionPendingRequestDTO> kafkaTemplate(ProducerFactory<String, SubmissionPendingRequestDTO> pf) {
         return new KafkaTemplate<>(pf);
     }
 
     // ConsumerFactory for CodeSubmission
     @Bean
-    public ConsumerFactory<String, CodeSubmission> consumerFactory(Environment env) {
-        JsonDeserializer<CodeSubmission> deserializer = new JsonDeserializer<>(CodeSubmission.class);
+    public ConsumerFactory<String, SubmissionPendingRequestDTO> consumerFactory(Environment env) {
+        JsonDeserializer<SubmissionPendingRequestDTO> deserializer = new JsonDeserializer<>(SubmissionPendingRequestDTO.class);
         deserializer.addTrustedPackages("com.example.softwarebackend.modules.grader.dto");
 
         Map<String, Object> props = new HashMap<>();
@@ -93,9 +93,9 @@ public class KafkaConfig {
 
     // Configure listener container factory for concurrency
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, CodeSubmission> kafkaListenerContainerFactory(
-            ConsumerFactory<String, CodeSubmission> cf) {
-        ConcurrentKafkaListenerContainerFactory<String, CodeSubmission> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, SubmissionPendingRequestDTO> kafkaListenerContainerFactory(
+            ConsumerFactory<String, SubmissionPendingRequestDTO> cf) {
+        ConcurrentKafkaListenerContainerFactory<String, SubmissionPendingRequestDTO> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(cf);
         // concurrency tuned from application.yml but can override programmatically

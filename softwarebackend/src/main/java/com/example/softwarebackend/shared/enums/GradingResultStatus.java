@@ -1,4 +1,4 @@
-package com.example.softwarebackend.modules.grader.model;
+package com.example.softwarebackend.shared.enums;
 
 public enum GradingResultStatus {
     PENDING, COMPLETED, FAILED

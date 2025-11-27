@@ -23,6 +23,8 @@ public interface UserService {
 
     public Optional<User> getUserEntityByEmail(String email);
 
+    public Optional<User> getUserEntityById(UUID id);
+
     public User saveUserEntity(User user);
 
     public void updateAccountLockDetails( UUID id, boolean accountLocked,  LocalDateTime lockTime,  int failedLoginAttempts);

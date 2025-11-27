@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -61,4 +62,14 @@ public class Contest {
 
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
+
+    public void verifyOwner(UUID currentUserId)  {
+        if (author == null || author.getId() == null) {
+            throw new AccessDeniedException("Contest has no owner.");
+        }
+
+        if (!author.getId().equals(currentUserId)) {
+            throw new AccessDeniedException("You are not the owner of this contest.");
+        }
+    }
 }
