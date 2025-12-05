@@ -1,9 +1,7 @@
 package com.example.softwarebackend.modules.leaderboard.service;
 
-import com.example.softwarebackend.modules.constest.mapper.ContestMapper;
 import com.example.softwarebackend.modules.constest.services.ContestService;
 import com.example.softwarebackend.modules.leaderboard.dto.LeaderBoardEntryResponseDTO;
-import com.example.softwarebackend.modules.leaderboard.dto.LeaderBoardResponseDTO;
 import com.example.softwarebackend.modules.leaderboard.dto.LeaderBoardUpdateDTO;
 import com.example.softwarebackend.modules.leaderboard.mapper.LeaderBoardMapper;
 import com.example.softwarebackend.modules.leaderboard.repository.LeaderBoardRepository;
@@ -21,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -63,6 +60,7 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
     }
 
     //get leader board by contest id
+    @Override
     public PageResponseDTO<LeaderBoardEntryResponseDTO> getLeaderBoardByContestId(String contestId, String search, int page, int size, String[] sort) {
 
         Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
