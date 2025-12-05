@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 public class GradedSubmissionDTO {
 
     private String submissionId;
+    private String contestId;
+    private String problemId;
     private double understandingLogic;
     private double correctnessScore;
     private double readabilityScore;

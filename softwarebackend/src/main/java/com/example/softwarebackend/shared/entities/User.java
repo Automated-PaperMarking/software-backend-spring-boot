@@ -78,6 +78,10 @@ public class User implements UserDetails {
     @JsonManagedReference
     private List<Problem> authoredProblems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<LeaderBoardEntry> leaderBoardEntries = new ArrayList<>();
+
     @CreationTimestamp
     private OffsetDateTime createdAt;
 

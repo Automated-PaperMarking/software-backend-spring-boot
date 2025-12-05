@@ -1,5 +1,7 @@
 package com.example.softwarebackend.modules.submission.service;
 
+import com.example.softwarebackend.modules.leaderboard.dto.LeaderBoardUpdateDTO;
+import com.example.softwarebackend.modules.leaderboard.service.LeaderBoardService;
 import com.example.softwarebackend.modules.submission.dto.GradedSubmissionDTO;
 import com.example.softwarebackend.modules.submission.dto.SubmissionPendingRequestDTO;
 import com.google.genai.Client;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 @Service
@@ -104,7 +107,10 @@ public class GeminiService {
         }
 
         GradedSubmissionDTO gradedResult = getGradedResultDTO(codeSubmission, jsonString);
+        //update submission with graded result
         submissionService.updateSubmission(gradedResult);
+
+
 
         logger.info("✅ Successfully graded code for submission: {}", codeSubmission.getSubmissionId());
     }
@@ -114,6 +120,8 @@ public class GeminiService {
 
         GradedSubmissionDTO gradedResult = new GradedSubmissionDTO();
         gradedResult.setSubmissionId(codeSubmission.getSubmissionId()); // Fix: Set the gradedResultId
+        gradedResult.setContestId(codeSubmission.getContestId());
+        gradedResult.setProblemId(codeSubmission.getProblemId());
         gradedResult.setUnderstandingLogic(jsonObject.getDouble("understanding_logic"));
         gradedResult.setCorrectnessScore(jsonObject.getDouble("correctness_score"));
         gradedResult.setReadabilityScore(jsonObject.getDouble("readability_score"));

@@ -24,7 +24,7 @@ public class Submission {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10000)
     private String code;
 
     @Column(nullable = false)

@@ -26,4 +26,8 @@ public class SubmissionPendingRequestDTO {
     @NotBlank(message = "Submission type cannot be blank")
     private SubmissionType submissionType;
 
+    private String contestId;
+
+    private String problemId;
+
 }

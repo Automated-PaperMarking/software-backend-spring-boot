@@ -1,14 +1,18 @@
 package com.example.softwarebackend.modules.submission.service;
 
 import com.example.softwarebackend.modules.constest.services.ContestService;
+import com.example.softwarebackend.modules.leaderboard.dto.LeaderBoardUpdateDTO;
+import com.example.softwarebackend.modules.leaderboard.service.LeaderBoardService;
 import com.example.softwarebackend.modules.problem.services.ProblemService;
 import com.example.softwarebackend.modules.submission.dto.GradedSubmissionDTO;
 import com.example.softwarebackend.modules.submission.dto.SubmissionCreateRequestDTO;
 import com.example.softwarebackend.modules.submission.dto.SubmissionPendingRequestDTO;
 import com.example.softwarebackend.modules.submission.dto.SubmissionResponseDTO;
 import com.example.softwarebackend.modules.submission.kafka.SubmissionProducer;
+import com.example.softwarebackend.modules.submission.mapper.SubmissionMapper;
 import com.example.softwarebackend.modules.submission.repository.SubmissionRepository;
 import com.example.softwarebackend.modules.user.services.UserService;
+import com.example.softwarebackend.shared.entities.Submission;
 import com.example.softwarebackend.shared.enums.GradingResultStatus;
 import com.example.softwarebackend.shared.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
@@ -18,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +38,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final ProblemService problemService;
     private final ContestService contestService;
     private final SubmissionProducer submissionProducer;
+    private final LeaderBoardService leaderBoardService;
 
     @Transactional
     @Override
@@ -47,10 +55,16 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Contest not found  ")
                 );
+
+        var person = contest.getParticipants().stream().findFirst();
+        if(person.isPresent()) {
+            LOGGER.info(person.get().getEmail());
+        }
         //check if student is enrolled in the contest
-        if (!contest.getParticipants().contains(student) || !contest.getAuthor().equals(student)) {
+        if (!contest.getParticipants().contains(student) && !contest.getAuthor().equals(student)) {
             throw new IllegalArgumentException("Student is not enrolled in the contest.");
         }
+
 
         // Check if current time is within contest start and end time
         OffsetDateTime currentTime = OffsetDateTime.now();
@@ -69,7 +83,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
 
         var submission = submissionRepository.save(
-                com.example.softwarebackend.shared.entities.Submission.builder()
+                Submission.builder()
                         .code(submissionCreateRequestDTO.getCode())
                         .language(submissionCreateRequestDTO.getLanguage())
                         .submissionType(submissionCreateRequestDTO.getSubmissionType())
@@ -84,36 +98,41 @@ public class SubmissionServiceImpl implements SubmissionService {
         );
 
         //publish for grading
-        SubmissionPendingRequestDTO submissionPendingRequestDTO = new SubmissionPendingRequestDTO();
-        submissionPendingRequestDTO.setSubmissionId(submission.getId().toString());
-        submissionPendingRequestDTO.setCode(submission.getCode());
-        submissionPendingRequestDTO.setLanguage(submission.getLanguage());
-        submissionPendingRequestDTO.setProblem(submission.getProblem().getStatement());
-        submissionPendingRequestDTO.setSubmissionType(submission.getSubmissionType());
+        SubmissionPendingRequestDTO submissionPendingRequestDTO = SubmissionMapper.getSubmissionPendingRequestDTO(submissionCreateRequestDTO, submission);
         submissionProducer.publish(submissionPendingRequestDTO);
 
         LOGGER.info("New submission added with id: {}", submission.getId());
 
     }
 
+
+
     @Transactional
     @Override
     public void updateSubmission(GradedSubmissionDTO submissionDTO) {
         var existingSubmission = submissionRepository.findById(UUID.fromString(submissionDTO.getSubmissionId()));
         if (existingSubmission.isPresent()) {
-            var submissionToUpdate = existingSubmission.get();
-            submissionToUpdate.setUnderstandingLogic(submissionDTO.getUnderstandingLogic());
-            submissionToUpdate.setCorrectnessScore(submissionDTO.getCorrectnessScore());
-            submissionToUpdate.setReadabilityScore(submissionDTO.getReadabilityScore());
-            submissionToUpdate.setTotalScore(submissionDTO.getTotalScore());
-            submissionToUpdate.setGradingResultStatus(com.example.softwarebackend.shared.enums.GradingResultStatus.COMPLETED);
+            var submissionToUpdate = SubmissionMapper.getSubmission(submissionDTO, existingSubmission);
             submissionRepository.save(submissionToUpdate);
             LOGGER.info("Updated submission with id: {}", submissionDTO.getSubmissionId());
+
+            //update leaderboard
+            leaderBoardService.updateLeaderBoard(
+                    new LeaderBoardUpdateDTO(
+                            submissionToUpdate.getStudent().getId(),
+                            UUID.fromString(submissionDTO.getContestId()),
+                            UUID.fromString(submissionDTO.getProblemId()),
+                            submissionDTO.getTotalScore()
+                    )
+            );
+
         } else {
             LOGGER.warn("Submission not found with id: {}", submissionDTO.getSubmissionId());
         }
 
     }
+
+
 
     @Transactional
     @Override
@@ -150,8 +169,5 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .updatedAt(submission.getUpdatedAt().toString())
                 .build();
     }
-
-
-
 
 }

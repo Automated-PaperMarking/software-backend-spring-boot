@@ -1,6 +1,5 @@
 package com.example.softwarebackend.shared.entities;
 
-import com.example.softwarebackend.shared.enums.TestCaseType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,33 +8,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.context.annotation.Profile;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
-@Entity
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TestCase {
+@Entity
+public class LeaderBoardEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-    @Column(nullable = false, length = 2000)
-    private String input;
-    @Column(nullable = false, length = 2000)
-    private String expectedOutput;
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private TestCaseType type;
-    @ManyToOne
-    @JoinColumn(name = "problem_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
-    private Problem problem;
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contest_id", nullable = false)
+    @JsonBackReference
+    private Contest contest;
+
+    private double totalScore;
+
+    private int rank;
+
+    private int problemsSolved;
+
     @CreationTimestamp
     private OffsetDateTime createdAt;
+
     @UpdateTimestamp
     private OffsetDateTime updatedAt;
+
 }

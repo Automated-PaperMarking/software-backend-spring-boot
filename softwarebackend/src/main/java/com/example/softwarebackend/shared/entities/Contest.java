@@ -28,6 +28,7 @@ public class Contest {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 1000)
     private String description;
 
     private String enrollmentKey;
@@ -55,6 +56,10 @@ public class Contest {
     @ManyToMany(mappedBy = "participatedContests")
     @JsonBackReference
     private List<User> participants;
+
+    @OneToMany(mappedBy = "contest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<LeaderBoardEntry> leaderBoardEntries;
 
 
     @CreationTimestamp
