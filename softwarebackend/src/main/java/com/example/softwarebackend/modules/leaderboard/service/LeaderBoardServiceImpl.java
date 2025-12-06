@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +43,7 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
                 .orElseGet(() -> create(leaderBoardUpdateDTO));
 
         // update the total score
-        double updatedTotalScore = leaderBoardEntry.getTotalScore() + leaderBoardUpdateDTO.getTotalScoreForSubmission();
+        AtomicReference<Double> updatedTotalScore = new AtomicReference<>((double) 0);
 
         // NEED TO IMPLEMENT LOGIC TO DO THE RANKING BASED ON TOTAL SCORE
 
@@ -52,7 +53,16 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         var student = userService.getUserEntityById(leaderBoardUpdateDTO.getStudentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
-        leaderBoardEntry.setTotalScore(updatedTotalScore);
+        //calculate updated total score
+        contest.getSubmissions().stream()
+                        .filter(
+                                s->s.getStudent().getId().equals(student.getId())
+                        ).forEach(
+                                s->updatedTotalScore.set(updatedTotalScore.get() + s.getTotalScore())
+                        );
+
+
+        leaderBoardEntry.setTotalScore(updatedTotalScore.get());
         leaderBoardEntry.setContest(contest);
         leaderBoardEntry.setUser(student);
         leaderBoardRepository.save(leaderBoardEntry);
