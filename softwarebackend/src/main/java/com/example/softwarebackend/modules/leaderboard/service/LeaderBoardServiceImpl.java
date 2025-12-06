@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -39,13 +40,12 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
     public void updateLeaderBoard(LeaderBoardUpdateDTO leaderBoardUpdateDTO) {
         // get the existing leaderboard entry if not create new one
         LeaderBoardEntry leaderBoardEntry = leaderBoardRepository
-                .findByStudentIdAndContestId(leaderBoardUpdateDTO.getStudentId(),leaderBoardUpdateDTO.getContestId())
+                .findByStudentIdAndContestIdOrderByScoreDesc(leaderBoardUpdateDTO.getStudentId(),leaderBoardUpdateDTO.getContestId())
                 .orElseGet(() -> create(leaderBoardUpdateDTO));
 
         // update the total score
-        AtomicReference<Double> updatedTotalScore = new AtomicReference<>((double) 0);
-
-        // NEED TO IMPLEMENT LOGIC TO DO THE RANKING BASED ON TOTAL SCORE
+        AtomicReference<Double> updatedTotalScore = new AtomicReference<>(0.0);
+        AtomicInteger numberOfProblemSolved = new AtomicInteger();
 
         var contest = contestService.getContestEntityById(leaderBoardUpdateDTO.getContestId())
                 .orElseThrow(() -> new ResourceNotFoundException("Contest not found"));
@@ -55,18 +55,24 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
 
         //calculate updated total score
         contest.getSubmissions().stream()
-                        .filter(
-                                s->s.getStudent().getId().equals(student.getId())
-                        ).forEach(
-                                s->updatedTotalScore.set(updatedTotalScore.get() + s.getTotalScore())
-                        );
+                .filter(s -> s.getStudent().getId().equals(student.getId()))
+                .forEach(s -> {
+                    updatedTotalScore.set(updatedTotalScore.get() + s.getTotalScore());
+                    numberOfProblemSolved.getAndIncrement();
+                });
 
-
+        // Update the leaderboard entry
         leaderBoardEntry.setTotalScore(updatedTotalScore.get());
         leaderBoardEntry.setContest(contest);
         leaderBoardEntry.setUser(student);
+        leaderBoardEntry.setProblemsSolved(numberOfProblemSolved.get());
         leaderBoardRepository.save(leaderBoardEntry);
-        LOGGER.info("Leaderboard updated successfully.");
+
+        // Recalculate ranks for all participants in this contest
+        recalculateRanksForContest(leaderBoardUpdateDTO.getContestId());
+
+        LOGGER.info("Leaderboard updated successfully for student: {} in contest: {}",
+                   student.getId(), contest.getId());
     }
 
     //get leader board by contest id
@@ -80,7 +86,7 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         int currentPageNumber=pageable.getPageNumber();
         List<LeaderBoardEntryResponseDTO> leaderBoardEntryResponseDTOS;
         if (!Objects.equals(search, "") && search != null) {
-            currentPage =leaderBoardRepository.findBySearchKey(UUID.fromString(contestId), search,pageable);
+            currentPage =leaderBoardRepository.findBySearchKeyOrderByScoreDesc(UUID.fromString(contestId), search,pageable);
         } else {
             currentPage = leaderBoardRepository.findAllByContestId(UUID.fromString(contestId),pageable);
         }
@@ -89,12 +95,43 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         LOGGER.info("Retrieved {} contests", leaderBoardEntryResponseDTOS.size());
 
 
-        return new PageResponseDTO<LeaderBoardEntryResponseDTO>(currentPageNumber,currentPage.getTotalPages(), leaderBoardEntryResponseDTOS);
+        return new PageResponseDTO<>(currentPageNumber,currentPage.getTotalPages(), leaderBoardEntryResponseDTOS);
 
     }
 
 
 
+
+    /**
+     * Recalculates ranks for all participants in a contest based on total score
+     * Higher score gets better (lower) rank. In case of tie, more problems solved gets better rank.
+     */
+    private void recalculateRanksForContest(UUID contestId) {
+        // Get all leaderboard entries for this contest, ordered by score descending
+        List<LeaderBoardEntry> entries = leaderBoardRepository.findAllByContestIdOrderByScoreDesc(contestId);
+
+        int currentRank = 1;
+        double previousScore = -1;
+        int previousProblemsSolved = -1;
+
+        for (int i = 0; i < entries.size(); i++) {
+            LeaderBoardEntry entry = entries.get(i);
+
+            // If score and problems solved are different from previous entry, update rank
+            if (entry.getTotalScore() != previousScore || entry.getProblemsSolved() != previousProblemsSolved) {
+                currentRank = i + 1; // Rank is 1-based
+            }
+
+            entry.setRank(currentRank);
+            previousScore = entry.getTotalScore();
+            previousProblemsSolved = entry.getProblemsSolved();
+        }
+
+        // Save all updated entries
+        leaderBoardRepository.saveAll(entries);
+
+        LOGGER.info("Recalculated ranks for {} participants in contest: {}", entries.size(), contestId);
+    }
 
     public LeaderBoardEntry create(LeaderBoardUpdateDTO leaderBoardUpdateDTO) {
         LeaderBoardEntry leaderBoardEntry = new LeaderBoardEntry();
@@ -105,6 +142,7 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         leaderBoardEntry.setTotalScore(0.0);
         leaderBoardEntry.setUser(Student);
         leaderBoardEntry.setContest(Contest);
+        leaderBoardEntry.setRank(0); // Will be set when recalculateRanksForContest is called
         return leaderBoardRepository.save(leaderBoardEntry);
     }
 
