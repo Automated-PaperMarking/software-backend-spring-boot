@@ -1,5 +1,8 @@
 -- Test Data SQL Script for Software Submission Backend
 -- This script creates dummy data for testing purposes
+--
+-- NOTE: Submission uniqueness constraint: One submission per student per problem per contest
+-- The same student can have different submissions for the same problem in different contests
 
 -- Clear existing data (in reverse order of dependencies)
 DELETE FROM leader_board_entry;
@@ -105,35 +108,36 @@ INSERT INTO contest_participants (user_id, contest_id) VALUES
 ('550e8400-e29b-41d4-a716-446655440015', '880e8400-e29b-41d4-a716-446655440003'),
 ('550e8400-e29b-41d4-a716-446655440016', '880e8400-e29b-41d4-a716-446655440003');
 
--- Insert Submissions
-INSERT INTO submission (id, code, submission_type, language, student_id, problem_id, understanding_logic, correctness_score, readability_score, total_score, grading_result_status, created_at, updated_at) VALUES
--- Two Sum submissions
-('990e8400-e29b-41d4-a716-446655440001', 'class Solution:\n    def twoSum(self, nums, target):\n        hashmap = {}\n        for i, num in enumerate(nums):\n            complement = target - num\n            if complement in hashmap:\n                return [hashmap[complement], i]\n            hashmap[num] = i', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440011', '660e8400-e29b-41d4-a716-446655440001', 85.5, 92.0, 88.0, 88.5, 'COMPLETED', '2024-04-01 11:30:00+00:00', '2024-04-01 11:35:00+00:00'),
-('990e8400-e29b-41d4-a716-446655440002', 'public int[] twoSum(int[] nums, int target) {\n    Map<Integer, Integer> map = new HashMap<>();\n    for (int i = 0; i < nums.length; i++) {\n        int complement = target - nums[i];\n        if (map.containsKey(complement)) {\n            return new int[] { map.get(complement), i };\n        }\n        map.put(nums[i], i);\n    }\n    return null;\n}', 'FINAL', 'Java', '550e8400-e29b-41d4-a716-446655440012', '660e8400-e29b-41d4-a716-446655440001', 90.0, 95.0, 85.0, 90.0, 'COMPLETED', '2024-04-01 12:15:00+00:00', '2024-04-01 12:20:00+00:00'),
+-- Insert Submissions (One submission per student per problem per contest)
+INSERT INTO submission (id, code, submission_type, language, student_id, problem_id, contest_id, understanding_logic, correctness_score, readability_score, total_score, grading_result_status, created_at, updated_at) VALUES
+-- Two Sum submission by Bob Brown in Beginner Contest
+('990e8400-e29b-41d4-a716-446655440001', 'public int[] twoSum(int[] nums, int target) {\n    Map<Integer, Integer> map = new HashMap<>();\n    for (int i = 0; i < nums.length; i++) {\n        int complement = target - nums[i];\n        if (map.containsKey(complement)) {\n            return new int[] { map.get(complement), i };\n        }\n        map.put(nums[i], i);\n    }\n    return null;\n}', 'FINAL', 'Java', '550e8400-e29b-41d4-a716-446655440012', '660e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440001', 90.0, 95.0, 85.0, 90.0, 'COMPLETED', '2024-04-01 12:15:00+00:00', '2024-04-01 12:20:00+00:00'),
 
--- Reverse Integer submissions
-('990e8400-e29b-41d4-a716-446655440003', 'def reverse(self, x: int) -> int:\n    sign = -1 if x < 0 else 1\n    x = abs(x)\n    result = 0\n    while x:\n        result = result * 10 + x % 10\n        x //= 10\n    result *= sign\n    return result if -2**31 <= result <= 2**31 - 1 else 0', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440013', '660e8400-e29b-41d4-a716-446655440002', 88.0, 90.0, 82.0, 86.7, 'COMPLETED', '2024-04-01 13:20:00+00:00', '2024-04-01 13:25:00+00:00'),
+-- Reverse Integer submission by Charlie Garcia in Beginner Contest
+('990e8400-e29b-41d4-a716-446655440002', 'def reverse(self, x: int) -> int:\n    sign = -1 if x < 0 else 1\n    x = abs(x)\n    result = 0\n    while x:\n        result = result * 10 + x % 10\n        x //= 10\n    result *= sign\n    return result if -2**31 <= result <= 2**31 - 1 else 0', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440013', '660e8400-e29b-41d4-a716-446655440002', '880e8400-e29b-41d4-a716-446655440001', 88.0, 90.0, 82.0, 86.7, 'COMPLETED', '2024-04-01 13:20:00+00:00', '2024-04-01 13:25:00+00:00'),
 
--- Palindrome Number submissions
-('990e8400-e29b-41d4-a716-446655440004', 'def isPalindrome(self, x: int) -> bool:\n    if x < 0:\n        return False\n    return str(x) == str(x)[::-1]', 'SAMPLE', 'Python', '550e8400-e29b-41d4-a716-446655440011', '660e8400-e29b-41d4-a716-446655440005', 75.0, 85.0, 90.0, 83.3, 'COMPLETED', '2024-04-01 14:10:00+00:00', '2024-04-01 14:12:00+00:00'),
-('990e8400-e29b-41d4-a716-446655440005', 'def isPalindrome(self, x: int) -> bool:\n    if x < 0 or (x != 0 and x % 10 == 0):\n        return False\n    \n    reversed_half = 0\n    while x > reversed_half:\n        reversed_half = reversed_half * 10 + x % 10\n        x //= 10\n    \n    return x == reversed_half or x == reversed_half // 10', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440011', '660e8400-e29b-41d4-a716-446655440005', 95.0, 98.0, 92.0, 95.0, 'COMPLETED', '2024-04-01 15:30:00+00:00', '2024-04-01 15:35:00+00:00'),
+-- Longest Substring submission by Eva Anderson in Advanced Contest
+('990e8400-e29b-41d4-a716-446655440003', 'def lengthOfLongestSubstring(self, s: str) -> int:\n    char_map = {}\n    left = 0\n    max_length = 0\n    \n    for right in range(len(s)):\n        if s[right] in char_map and char_map[s[right]] >= left:\n            left = char_map[s[right]] + 1\n        char_map[s[right]] = right\n        max_length = max(max_length, right - left + 1)\n    \n    return max_length', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440015', '660e8400-e29b-41d4-a716-446655440003', '880e8400-e29b-41d4-a716-446655440002', 89.0, 93.0, 87.0, 89.7, 'COMPLETED', '2024-04-15 11:30:00+00:00', '2024-04-15 11:40:00+00:00'),
 
--- Valid Parentheses submissions
-('990e8400-e29b-41d4-a716-446655440006', 'def isValid(self, s: str) -> bool:\n    stack = []\n    mapping = {")": "(", "}": "{", "]": "["}\n    \n    for char in s:\n        if char in mapping:\n            if not stack or stack.pop() != mapping[char]:\n                return False\n        else:\n            stack.append(char)\n    \n    return not stack', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440014', '660e8400-e29b-41d4-a716-446655440006', 92.0, 96.0, 94.0, 94.0, 'COMPLETED', '2024-04-01 16:45:00+00:00', '2024-04-01 16:50:00+00:00'),
+-- Palindrome Number submission by Alice Wilson in Beginner Contest
+('990e8400-e29b-41d4-a716-446655440004', 'def isPalindrome(self, x: int) -> bool:\n    if x < 0 or (x != 0 and x % 10 == 0):\n        return False\n    \n    reversed_half = 0\n    while x > reversed_half:\n        reversed_half = reversed_half * 10 + x % 10\n        x //= 10\n    \n    return x == reversed_half or x == reversed_half // 10', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440011', '660e8400-e29b-41d4-a716-446655440005', '880e8400-e29b-41d4-a716-446655440001', 95.0, 98.0, 92.0, 95.0, 'COMPLETED', '2024-04-01 15:30:00+00:00', '2024-04-01 15:35:00+00:00'),
 
--- Longest Substring submissions
-('990e8400-e29b-41d4-a716-446655440007', 'def lengthOfLongestSubstring(self, s: str) -> int:\n    char_map = {}\n    left = 0\n    max_length = 0\n    \n    for right in range(len(s)):\n        if s[right] in char_map and char_map[s[right]] >= left:\n            left = char_map[s[right]] + 1\n        char_map[s[right]] = right\n        max_length = max(max_length, right - left + 1)\n    \n    return max_length', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440015', '660e8400-e29b-41d4-a716-446655440003', 89.0, 93.0, 87.0, 89.7, 'COMPLETED', '2024-04-15 11:30:00+00:00', '2024-04-15 11:40:00+00:00'),
+-- Valid Parentheses submission by Diana Martinez in Beginner Contest
+('990e8400-e29b-41d4-a716-446655440005', 'def isValid(self, s: str) -> bool:\n    stack = []\n    mapping = {")": "(", "}": "{", "]": "["}\n    \n    for char in s:\n        if char in mapping:\n            top_element = stack.pop() if stack else "#"\n            if mapping[char] != top_element:\n                return False\n        else:\n            stack.append(char)\n    \n    return not stack', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440014', '660e8400-e29b-41d4-a716-446655440006', '880e8400-e29b-41d4-a716-446655440001', 92.0, 96.0, 88.0, 92.0, 'COMPLETED', '2024-04-01 16:45:00+00:00', '2024-04-01 16:50:00+00:00'),
 
--- Pending submissions
-('990e8400-e29b-41d4-a716-446655440008', 'def twoSum(self, nums, target):\n    for i in range(len(nums)):\n        for j in range(i+1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return []', 'SAMPLE', 'Python', '550e8400-e29b-41d4-a716-446655440016', '660e8400-e29b-41d4-a716-446655440001', 0.0, 0.0, 0.0, 0.0, 'PENDING', '2024-04-08 15:20:00+00:00', '2024-04-08 15:20:00+00:00');
+-- Example: Same student, same problem, different contest (Alice Wilson - Two Sum in Weekly Practice)
+('990e8400-e29b-41d4-a716-446655440006', 'def twoSum(self, nums, target):\n    for i in range(len(nums)):\n        for j in range(i + 1, len(nums)):\n            if nums[i] + nums[j] == target:\n                return [i, j]\n    return []', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440011', '660e8400-e29b-41d4-a716-446655440001', '880e8400-e29b-41d4-a716-446655440003', 70.0, 85.0, 75.0, 76.7, 'COMPLETED', '2024-04-08 15:20:00+00:00', '2024-04-08 15:25:00+00:00'),
+
+-- Example: Same student, same problem, different contest (Bob Brown - Palindrome in Weekly Practice)
+('990e8400-e29b-41d4-a716-446655440007', 'def isPalindrome(self, x: int) -> bool:\n    return str(x) == str(x)[::-1]', 'FINAL', 'Python', '550e8400-e29b-41d4-a716-446655440012', '660e8400-e29b-41d4-a716-446655440005', '880e8400-e29b-41d4-a716-446655440003', 80.0, 88.0, 85.0, 84.3, 'COMPLETED', '2024-04-08 16:10:00+00:00', '2024-04-08 16:15:00+00:00');
 
 -- Insert Leaderboard Entries
 INSERT INTO leader_board_entry (id, user_id, contest_id, total_score, rank, problems_solved, created_at, updated_at) VALUES
 -- Beginner Contest Leaderboard
-('aa0e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440012', '880e8400-e29b-41d4-a716-446655440001', 90.0, 1, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'),
-('aa0e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440011', '880e8400-e29b-41d4-a716-446655440001', 95.0, 2, 2, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'),
-('aa0e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440014', '880e8400-e29b-41d4-a716-446655440001', 94.0, 3, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'),
-('aa0e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440013', '880e8400-e29b-41d4-a716-446655440001', 86.7, 4, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'),
+('aa0e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440011', '880e8400-e29b-41d4-a716-446655440001', 95.0, 1, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'), -- Alice Wilson (Palindrome Number)
+('aa0e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440014', '880e8400-e29b-41d4-a716-446655440001', 92.0, 2, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'), -- Diana Martinez (Valid Parentheses)
+('aa0e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440012', '880e8400-e29b-41d4-a716-446655440001', 90.0, 3, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'), -- Bob Brown (Two Sum)
+('aa0e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440013', '880e8400-e29b-41d4-a716-446655440001', 86.7, 4, 1, '2024-04-01 18:30:00+00:00', '2024-04-01 18:30:00+00:00'), -- Charlie Garcia (Reverse Integer)
 
 -- Advanced Contest Leaderboard
 ('aa0e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440015', '880e8400-e29b-41d4-a716-446655440002', 89.7, 1, 1, '2024-04-15 21:30:00+00:00', '2024-04-15 21:30:00+00:00'),
@@ -141,8 +145,8 @@ INSERT INTO leader_board_entry (id, user_id, contest_id, total_score, rank, prob
 ('aa0e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440014', '880e8400-e29b-41d4-a716-446655440002', 0.0, 2, 0, '2024-04-15 21:30:00+00:00', '2024-04-15 21:30:00+00:00'),
 ('aa0e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440016', '880e8400-e29b-41d4-a716-446655440002', 0.0, 2, 0, '2024-04-15 21:30:00+00:00', '2024-04-15 21:30:00+00:00'),
 
--- Weekly Practice Leaderboard (ongoing)
-('aa0e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440016', '880e8400-e29b-41d4-a716-446655440003', 0.0, 1, 0, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'),
-('aa0e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440011', '880e8400-e29b-41d4-a716-446655440003', 0.0, 1, 0, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'),
-('aa0e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440012', '880e8400-e29b-41d4-a716-446655440003', 0.0, 1, 0, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'),
-('aa0e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440015', '880e8400-e29b-41d4-a716-446655440003', 0.0, 1, 0, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00');
+-- Weekly Practice Leaderboard
+('aa0e8400-e29b-41d4-a716-446655440009', '550e8400-e29b-41d4-a716-446655440012', '880e8400-e29b-41d4-a716-446655440003', 84.3, 1, 1, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'), -- Bob Brown (Palindrome Number - different solution)
+('aa0e8400-e29b-41d4-a716-446655440010', '550e8400-e29b-41d4-a716-446655440011', '880e8400-e29b-41d4-a716-446655440003', 76.7, 2, 1, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'), -- Alice Wilson (Two Sum - different solution)
+('aa0e8400-e29b-41d4-a716-446655440011', '550e8400-e29b-41d4-a716-446655440015', '880e8400-e29b-41d4-a716-446655440003', 0.0, 3, 0, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'), -- Eva Anderson (no submissions)
+('aa0e8400-e29b-41d4-a716-446655440012', '550e8400-e29b-41d4-a716-446655440016', '880e8400-e29b-41d4-a716-446655440003', 0.0, 3, 0, '2024-04-08 17:30:00+00:00', '2024-04-08 17:30:00+00:00'); -- Frank Taylor (no submissions)

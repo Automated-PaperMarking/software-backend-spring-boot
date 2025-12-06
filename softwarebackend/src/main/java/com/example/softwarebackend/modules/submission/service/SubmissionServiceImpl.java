@@ -42,7 +42,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     @Transactional
     @Override
-    public void addSubmission(SubmissionCreateRequestDTO submissionCreateRequestDTO) {
+    public String addSubmission(SubmissionCreateRequestDTO submissionCreateRequestDTO) {
         var student = userService.getUserEntityById(UUID.fromString(submissionCreateRequestDTO.getStudentId()))
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Student not found  ")
@@ -81,27 +81,56 @@ public class SubmissionServiceImpl implements SubmissionService {
         if (!contest.getProblems().contains(problem)) {
             throw new IllegalArgumentException("Problem does not belong to the specified contest.");
         }
+        Submission submission;
 
-        var submission = submissionRepository.save(
-                Submission.builder()
-                        .code(submissionCreateRequestDTO.getCode())
-                        .language(submissionCreateRequestDTO.getLanguage())
-                        .submissionType(submissionCreateRequestDTO.getSubmissionType())
-                        .student(student)
-                        .problem(problem)
-                        .understandingLogic(0)
-                        .correctnessScore(0)
-                        .readabilityScore(0)
-                        .totalScore(0)
-                        .gradingResultStatus(com.example.softwarebackend.shared.enums.GradingResultStatus.PENDING)
-                        .build()
-        );
+        // Check if there's already one submission per student per problem per contest
+        Optional<Submission> uniqueSubmissionPerProblemPerStudentPerContest = contest.getSubmissions()
+                .stream()
+                .filter(
+                        s->{
+                            return s.getProblem().getId().equals(problem.getId()) &&
+                                    s.getStudent().getId().equals(student.getId());
+                        }
+                ).findFirst();
+
+
+
+        if(uniqueSubmissionPerProblemPerStudentPerContest.isEmpty()){
+             submission = submissionRepository.save(
+                    Submission.builder()
+                            .code(submissionCreateRequestDTO.getCode())
+                            .language(submissionCreateRequestDTO.getLanguage())
+                            .submissionType(submissionCreateRequestDTO.getSubmissionType())
+                            .student(student)
+                            .problem(problem)
+                            .contest(contest)
+                            .understandingLogic(0)
+                            .correctnessScore(0)
+                            .readabilityScore(0)
+                            .totalScore(0)
+                            .gradingResultStatus(GradingResultStatus.PENDING)
+                            .build()
+            );
+
+        }else{
+            // else update existing submission
+            submission = uniqueSubmissionPerProblemPerStudentPerContest.get();
+            submission.setCode(submissionCreateRequestDTO.getCode());
+            submission.setLanguage(submissionCreateRequestDTO.getLanguage());
+            submission.setSubmissionType(submissionCreateRequestDTO.getSubmissionType());
+            submission.setGradingResultStatus(GradingResultStatus.PENDING);
+
+            submission = submissionRepository.save(submission);
+        }
+
+
 
         //publish for grading
         SubmissionPendingRequestDTO submissionPendingRequestDTO = SubmissionMapper.getSubmissionPendingRequestDTO(submissionCreateRequestDTO, submission);
         submissionProducer.publish(submissionPendingRequestDTO);
 
-        LOGGER.info("New submission added with id: {}", submission.getId());
+        LOGGER.info("submission added with id: {}", submission.getId());
+        return submission.getId().toString();
 
     }
 

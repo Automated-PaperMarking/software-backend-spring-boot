@@ -12,6 +12,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -47,6 +48,11 @@ public class Contest {
     )
     @JsonManagedReference
     private List<Problem> problems;
+
+
+    @OneToMany(mappedBy = "contest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Submission> submissions = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "author_id")

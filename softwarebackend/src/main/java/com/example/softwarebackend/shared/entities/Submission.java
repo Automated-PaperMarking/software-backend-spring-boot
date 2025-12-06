@@ -44,6 +44,11 @@ public class Submission {
     @JsonBackReference
     private Problem problem;
 
+    @ManyToOne
+    @JoinColumn(name = "contest_id")
+    @JsonBackReference
+    private Contest contest;
+
     @Column(nullable = false)
     private double understandingLogic;
     @Column(nullable = false)

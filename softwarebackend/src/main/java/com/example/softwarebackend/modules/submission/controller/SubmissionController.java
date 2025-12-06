@@ -25,8 +25,8 @@ public class SubmissionController {
 
     @PostMapping
     public ResponseEntity<ApiResponseDTO<?>> submit(@RequestBody SubmissionCreateRequestDTO submission) {
-        submissionService.addSubmission(submission);
-        ApiResponseDTO<?> apiResponseDTO = new ApiResponseDTO<>("203", "Submission received and is being processed.", null,true);
+        String submissionId=  submissionService.addSubmission(submission);
+        ApiResponseDTO<?> apiResponseDTO = new ApiResponseDTO<>("203", submissionId, null,true);
         return ResponseEntity.ok(apiResponseDTO);
 
     }

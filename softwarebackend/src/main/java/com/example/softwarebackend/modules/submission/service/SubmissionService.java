@@ -9,7 +9,7 @@ public interface SubmissionService {
 
 
     @Transactional
-    void addSubmission(SubmissionCreateRequestDTO submissionCreateRequestDTO);
+    String addSubmission(SubmissionCreateRequestDTO submissionCreateRequestDTO);
 
     @Transactional
     void updateSubmission(GradedSubmissionDTO submissionDTO);
