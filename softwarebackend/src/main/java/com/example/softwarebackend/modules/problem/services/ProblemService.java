@@ -10,13 +10,13 @@ import java.util.UUID;
 
 public interface ProblemService {
 
-    PageResponseDTO<ProblemResponseDTO> getAllProblems(String search, int page, int size, String[] sort);
+    PageResponseDTO<ProblemResponseDTO> getAllProblemsOfUser(String search, int page, int size, String[] sort);
 
     ProblemResponseDTO findById(UUID id);
 
     void deleteById(UUID id);
 
-    void createProblem(ProblemCreateDTO problemCreateDTO);
+    String createProblem(ProblemCreateDTO problemCreateDTO);
 
     public Optional<Problem> getProblemEntityById(UUID id);
 }

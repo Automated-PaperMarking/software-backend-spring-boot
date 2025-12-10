@@ -33,28 +33,7 @@ public class ProblemServiceImpl implements ProblemService {
     private final UserService userService;
     private final JwtService jwtService;
 
-    @Override
-    public PageResponseDTO<ProblemResponseDTO> getAllProblems(String search, int page, int size, String[] sort) {
 
-        Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-
-        Page<Problem> currentPage;
-        int currentPageNumber = pageable.getPageNumber();
-        List<ProblemResponseDTO> problems;
-
-        if (!Objects.equals(search, "") && search != null) {
-            currentPage = problemRepository.findBySearchKey(search, pageable);
-        } else {
-            currentPage = problemRepository.findAll(pageable);
-        }
-
-        problems = (currentPage.getContent()).stream().map(ProblemMapper::toDTO).toList();
-
-        logger.info("Retrieved {} problems", problems.size());
-
-        return new PageResponseDTO<>(currentPageNumber, currentPage.getTotalPages(), problems);
-    }
 
     @Override
     public ProblemResponseDTO findById(UUID id) {
@@ -67,13 +46,14 @@ public class ProblemServiceImpl implements ProblemService {
 
     @Transactional
     @Override
-    public void createProblem(ProblemCreateDTO problemCreateDTO) {
+    public String createProblem(ProblemCreateDTO problemCreateDTO) {
         var problem = ProblemMapper.toEntity(problemCreateDTO);
         var author = userService.getUserEntityById(UUID.fromString(jwtService.getUserIdFromToken()))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         problem.setAuthor(author);
         var savedProblem = problemRepository.save(problem);
         logger.info("Created problem with id: {}", savedProblem.getId());
+        return savedProblem.getId().toString();
     }
 
     @Override
@@ -95,6 +75,31 @@ public class ProblemServiceImpl implements ProblemService {
         String currentUserId = jwtService.getUserIdFromToken();
          problem.verifyOwner(UUID.fromString(currentUserId));
         problemRepository.delete(problem);
+    }
+
+    @Override
+    public PageResponseDTO<ProblemResponseDTO> getAllProblemsOfUser(String search, int page, int size, String[] sort) {
+
+        String authorId = jwtService.getUserIdFromToken();
+
+        Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+
+        Page<Problem> currentPage;
+        int currentPageNumber = pageable.getPageNumber();
+        List<ProblemResponseDTO> problems;
+
+        if (!Objects.equals(search, "") && search != null) {
+            currentPage = problemRepository.findByUsersProblemBySearchKey(search,UUID.fromString(authorId) ,pageable);
+        } else {
+            currentPage = problemRepository.findAllByUsersProblem(UUID.fromString(authorId),pageable);
+        }
+
+        problems = (currentPage.getContent()).stream().map(ProblemMapper::toDTO).toList();
+
+        logger.info("Retrieved {} problems", problems.size());
+
+        return new PageResponseDTO<>(currentPageNumber, currentPage.getTotalPages(), problems);
     }
 
 

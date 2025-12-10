@@ -26,7 +26,7 @@ public class ProblemController {
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(defaultValue = "id,asc") String[] sort) {
 
-        var currentPage = problemService.getAllProblems(search, page, size, sort);
+        var currentPage = problemService.getAllProblemsOfUser(search, page, size, sort);
         ApiResponseDTO<PageResponseDTO<ProblemResponseDTO>> response = new ApiResponseDTO<>("200", "Problems retrieved successfully", currentPage, true);
         return ResponseEntity.ok(response);
     }
@@ -40,8 +40,8 @@ public class ProblemController {
 
     @PostMapping
     public ResponseEntity<ApiResponseDTO<?>> createProblem(@Valid @RequestBody ProblemCreateDTO problemCreateDTO) {
-        problemService.createProblem(problemCreateDTO);
-        return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problem created successfully", null, true));
+        String id = problemService.createProblem(problemCreateDTO);
+        return ResponseEntity.ok(new ApiResponseDTO<>("200", "Problem created successfully", id, true));
     }
 
     @DeleteMapping("/{id}")
