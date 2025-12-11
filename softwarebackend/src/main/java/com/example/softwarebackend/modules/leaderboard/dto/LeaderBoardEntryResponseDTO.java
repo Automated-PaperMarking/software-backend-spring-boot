@@ -14,6 +14,7 @@ import java.time.OffsetDateTime;
 public class LeaderBoardEntryResponseDTO {
     private String id;
     private String studentName;
+    private String studentId;
     private double totalScore;
     private int rank;
     private int problemsSolved;
