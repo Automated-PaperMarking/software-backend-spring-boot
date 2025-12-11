@@ -8,6 +8,7 @@ public class LeaderBoardMapper {
         return LeaderBoardEntryResponseDTO.builder()
                 .id(leaderBoardEntry.getId().toString())
                 .studentName(leaderBoardEntry.getUser().getFirstName() + " " + leaderBoardEntry.getUser().getLastName())
+                .studentId(leaderBoardEntry.getUser().getId().toString())
                 .totalScore(leaderBoardEntry.getTotalScore())
                 .rank(leaderBoardEntry.getRank())
                 .problemsSolved(leaderBoardEntry.getProblemsSolved())
