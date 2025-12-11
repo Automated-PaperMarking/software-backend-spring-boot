@@ -62,6 +62,34 @@ public class ContestServiceImpl  implements ContestService {
 
     }
 
+    @Transactional
+    @Override
+    public PageResponseDTO<ContestResponseDTO> getAllContestOfUser(String search, int page, int size, String[] sort) {
+
+        Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+
+        // Get current user ID from JWT token
+        String currentUserId = jwtService.getUserIdFromToken();
+        UUID authorId = UUID.fromString(currentUserId);
+
+        Page<Contest> currentPage;
+        int currentPageNumber = pageable.getPageNumber();
+        List<ContestResponseDTO> contests;
+
+        if (!Objects.equals(search, "") && search != null) {
+            currentPage = contestRepository.findByAuthorIdAndSearchKey(authorId, search, pageable);
+        } else {
+            currentPage = contestRepository.findByAuthorId(authorId, pageable);
+        }
+        contests = (currentPage.getContent()).stream().map(ContestMapper::toDTO).toList();
+
+        logger.info("Retrieved {} contests for user {}", contests.size(), currentUserId);
+
+        return new PageResponseDTO<ContestResponseDTO>(currentPageNumber, currentPage.getTotalPages(), contests);
+
+    }
+
     @Override
     public ContestResponseDTO findById(UUID id) {
         var contest = contestRepository.findById(id)

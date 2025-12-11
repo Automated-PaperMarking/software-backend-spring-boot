@@ -16,4 +16,10 @@ public interface ContestRepository extends JpaRepository<Contest, UUID> {
     @Query("SELECT c FROM Contest c WHERE " +
             "LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))")
     Page<Contest> findBySearchKey(@Param("search") String search, Pageable pageable);
+
+    @Query("SELECT c FROM Contest c WHERE c.author.id = :authorId AND " +
+            "LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))")
+    Page<Contest> findByAuthorIdAndSearchKey(@Param("authorId") UUID authorId, @Param("search") String search, Pageable pageable);
+
+    Page<Contest> findByAuthorId(UUID authorId, Pageable pageable);
 }

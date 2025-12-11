@@ -15,6 +15,8 @@ public interface ContestService {
 
     public PageResponseDTO<ContestResponseDTO> getAllContests(String search, int page, int size, String[] sort);
 
+    public PageResponseDTO<ContestResponseDTO> getAllContestOfUser(String search, int page, int size, String[] sort);
+
     public ContestResponseDTO findById(UUID id);
 
     List<ProblemResponseDTO> getContestProblems(UUID contestId);

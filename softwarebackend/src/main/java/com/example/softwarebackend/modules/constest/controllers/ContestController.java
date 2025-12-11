@@ -26,6 +26,15 @@ public class ContestController {
         return ResponseEntity.ok(response);
     }
 
+    //get all contests of current user
+    @GetMapping("/my-contests")
+    public ResponseEntity<ApiResponseDTO<?>> getAllContestOfUser(@RequestParam(required = false) String search, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "id,asc") String[] sort) {
+
+        var currentPage = contestService.getAllContestOfUser(search, page, size, sort);
+        ApiResponseDTO<PageResponseDTO<ContestResponseDTO>> response = new ApiResponseDTO<>("200", "User contests retrieved successfully", currentPage, true);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponseDTO<?>> getContestById(@RequestParam String id) {
         ContestResponseDTO contestResponseDTO = contestService.findById(UUID.fromString(id));
