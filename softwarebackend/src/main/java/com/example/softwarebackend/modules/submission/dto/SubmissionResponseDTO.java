@@ -30,6 +30,8 @@ public class SubmissionResponseDTO {
 
     private double readabilityScore;
 
+
+
     private double totalScore;
 
     private String comment;

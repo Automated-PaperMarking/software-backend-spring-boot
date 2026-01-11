@@ -81,7 +81,6 @@ public class GeminiService {
                 {
                   "understanding_logic": number,
                   "correctness_score": number,
-                  "efficiency_score": number,
                   "readability_score": number,
                   "total_score": number
                   "comment" : string  // reason to give marks (10 world is enough)
