@@ -16,6 +16,7 @@ public class GradedSubmissionDTO {
     private double correctnessScore;
     private double readabilityScore;
     private double totalScore;
+    private String comment;
 
 
 }

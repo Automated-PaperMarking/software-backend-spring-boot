@@ -61,6 +61,9 @@ public class Submission {
     @Enumerated(EnumType.STRING)
     private GradingResultStatus gradingResultStatus;
 
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
+
     @CreationTimestamp
     private OffsetDateTime createdAt;
     @UpdateTimestamp

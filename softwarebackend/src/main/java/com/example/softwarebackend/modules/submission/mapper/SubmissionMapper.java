@@ -18,6 +18,7 @@ public class SubmissionMapper {
         submissionPendingRequestDTO.setSubmissionType(submission.getSubmissionType());
         submissionPendingRequestDTO.setContestId(submissionCreateRequestDTO.getContestId());
         submissionPendingRequestDTO.setProblemId(submissionCreateRequestDTO.getProblemId());
+
         return submissionPendingRequestDTO;
     }
     public static Submission getSubmission(GradedSubmissionDTO submissionDTO, Optional<Submission> existingSubmission) {
@@ -27,6 +28,7 @@ public class SubmissionMapper {
         submissionToUpdate.setReadabilityScore(submissionDTO.getReadabilityScore());
         submissionToUpdate.setTotalScore(submissionDTO.getTotalScore());
         submissionToUpdate.setGradingResultStatus(GradingResultStatus.COMPLETED);
+        submissionToUpdate.setComment(submissionDTO.getComment());
         return submissionToUpdate;
     }
 }

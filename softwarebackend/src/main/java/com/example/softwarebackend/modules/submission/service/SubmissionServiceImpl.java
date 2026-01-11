@@ -193,6 +193,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                 .correctnessScore(submission.getCorrectnessScore())
                 .readabilityScore(submission.getReadabilityScore())
                 .totalScore(submission.getTotalScore())
+                .comment(submission.getComment())
                 .gradingResultStatus(submission.getGradingResultStatus().name())
                 .createdAt(submission.getCreatedAt().toString())
                 .updatedAt(submission.getUpdatedAt().toString())

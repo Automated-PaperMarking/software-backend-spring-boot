@@ -32,6 +32,8 @@ public class SubmissionResponseDTO {
 
     private double totalScore;
 
+    private String comment;
+
     private String gradingResultStatus;
 
     private String createdAt;
