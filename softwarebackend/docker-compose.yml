@@ -1,14 +1,17 @@
 services:
-#  softwarebackend:
-#    build: .
-#    container_name: softwarebackend
-#    network_mode: "host"
-#    env_file:
-#      - .env
-#    depends_on:
-#      - kafka
-#      - db
-#    restart: on-failure
+  softwarebackend:
+    build: .
+    container_name: softwarebackend
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    depends_on:
+      - kafka
+      - db
+    networks:
+      - backend-network
+    restart: on-failure
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.8.0
@@ -49,11 +52,13 @@ services:
         POSTGRES_PASSWORD: password
         POSTGRES_DB: softwarebackendDb
     ports:
-      - "5432:5432"
+      - "5435:5432"
+    # No host port mapping to avoid collisions with host Postgres instances
     networks:
       - backend-network
+    # Mount at /var/lib/postgresql (not /var/lib/postgresql/data) to be compatible with Postgres 18+ image
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
 
 
 networks:
@@ -62,4 +67,5 @@ networks:
 
 volumes:
   pgdata:
+    name: softwarebackend_pgdata
 
