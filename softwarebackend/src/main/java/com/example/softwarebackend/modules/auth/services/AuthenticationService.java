@@ -44,7 +44,6 @@ public class AuthenticationService {
         var user = AuthenticationMapper.toUserFromRegisterRequestDTO(registerRequestDTO, passwordEncoder);
         var createdUser = userService.saveUserEntity(user);
         logger.info("User Created with email: {}", createdUser.getEmail());
-
         otpService.sendOtp(createdUser);
     }
 
@@ -116,7 +115,7 @@ public class AuthenticationService {
                 () -> new ResourceNotFoundException("User is not found with the provided email")
         );
 
-        if(user.isAccountLocked()){
+        if (user.isAccountLocked()) {
             throw new IllegalArgumentException("Unable to send OTP at this time. Please try again later");
         }
         otpService.sendOtp(user);
@@ -124,7 +123,7 @@ public class AuthenticationService {
 
     public void resetPassword(ResetPasswordRequestDTO request) {
         var user = userService.getUserEntityByEmail(request.getEmail()).orElseThrow(
-                ()-> new ResourceNotFoundException("User is not found with the provided email")
+                () -> new ResourceNotFoundException("User is not found with the provided email")
         );
 
 
